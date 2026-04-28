@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "flyingspawn",
+	"version": "1.0.0",
+	"name": "TC-CobbleFlight",
+	"description": "Wild Pokémon actually fly! Each one takes off, soars, and lands naturally. Fully configurable",
+	"authors": ["Toan Cao"],
+	"contact": {},
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.toancao.flyingspawn.FlyingSpawnMod"]
+	},
+	"icon": "assets/tccobbleflight/icon.png",
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"minecraft": "~1.21.1",
+		"cobblemon": "*",
+		"cloth-config2": "*"
+	}
+}
