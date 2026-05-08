@@ -1,17 +1,22 @@
 {
 	"schemaVersion": 1,
-	"id": "flyingspawn",
+	"id": "tc-battle-growth",
 	"version": "1.0.0",
-	"name": "TC-CobbleFlight",
-	"description": "Wild Pokémon actually fly! Each one takes off, soars, and lands naturally. Fully configurable",
+	"name": "TC Cobblemon: Battle Growth",
+	"description": "Pokémon gain experience during battle. Deal and take damage to level up and evolve instantly in combat.",
 	"authors": ["Toan Cao"],
 	"contact": {},
 	"license": "MIT",
 	"environment": "*",
+	"icon": "assets/tcbattlegrowth/icon.png",
 	"entrypoints": {
-		"main": ["com.toancao.flyingspawn.FlyingSpawnMod"]
+		"main": [
+			"com.toancao.battlegrowth.BattleGrowthMod"
+		]
 	},
-	"icon": "assets/tccobbleflight/icon.png",
+	"mixins": [
+		"tcbattlegrowth.mixins.json"
+	],
 	"depends": {
 		"fabricloader": ">=0.15.0",
 		"minecraft": "~1.21.1",
