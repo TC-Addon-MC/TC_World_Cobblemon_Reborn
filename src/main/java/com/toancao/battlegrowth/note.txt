@@ -1,0 +1,536 @@
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\actor\MultiPokemonBattleActor.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\actor\PlayerBattleActor.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\actor\PokemonBattleActor.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\actor\TrainerBattleActor.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ai\RandomBattleAI.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ai\StrongBattleAI.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\ActionEffectInstruction.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\BattleDispatch.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\CauserInstruction.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\DispatchResult.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\InstructionSet.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\InterpreterInstruction.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\UntilDispatch.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\WaitDispatch.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\dispatch\DispatchResultKt.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\interpreter\CobblemonEffect.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\interpreter\ContextManager.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\pokemon\BattleMove.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\pokemon\BattlePokemon.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ActiveBattlePokemon.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\AlreadyInBattleError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BagItemActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BagItems.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleActorErrors.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleBuilder.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleCaptureAction.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleFormat.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleRegistry.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleRules.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleSide.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleStartError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleStartResult.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleType.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BattleTypes.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\BusyError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\CanceledError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ChallengeManager.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\CommonBattleStartError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\DefaultActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ErroredBattleStart.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ForcePassActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ForfeitActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\HealItemActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\InBattleGimmickMove.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\InBattleMove.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\IncorrectActorCountError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\InsufficientPokemonError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\MoveActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\MoveTarget.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\NoPartyError.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\PassActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShiftActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownActionRequest.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownActionResponseType.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownInterpreter.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownMoveset.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownMovesetAdapter.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownPokemon.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownSide.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\ShowdownThread.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\SuccessfulBattleStart.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\SwitchActionResponse.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\Targetable.class
+D:\Minecraft\template-mod-template-1.21.1\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_2198_v2\com\cobblemon\fabric\1.7.3+1.21.1\fabric-1.7.3+1.21.1.jar!\com\cobblemon\mod\common\battles\TeamManager.class
+
+
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles.actor
+
+public open class MultiPokemonBattleActor public constructor(pokemonList: kotlin.collections.List<com.cobblemon.mod.common.battles.pokemon.BattlePokemon>, artificialDecider: com.cobblemon.mod.common.api.battles.model.ai.BattleAI = COMPILED_CODE, uuid: java.util.UUID = COMPILED_CODE) : com.cobblemon.mod.common.api.battles.model.actor.AIBattleActor {
+    public open val type: com.cobblemon.mod.common.api.battles.model.actor.ActorType /* compiled code */
+
+    public open fun getName(): net.minecraft.class_5250 { /* compiled code */ }
+
+    public open fun nameOwned(name: kotlin.String): net.minecraft.class_5250 { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles.actor
+
+public final class PlayerBattleActor public constructor(uuid: java.util.UUID, pokemonList: kotlin.collections.List<com.cobblemon.mod.common.battles.pokemon.BattlePokemon>) : com.cobblemon.mod.common.api.battles.model.actor.BattleActor, com.cobblemon.mod.common.api.battles.model.actor.EntityBackedBattleActor<net.minecraft.class_3222> {
+    public open val initialPos: net.minecraft.class_243? /* compiled code */
+
+    public open val entity: net.minecraft.class_3222? /* compiled code */
+        public open get() { /* compiled code */ }
+
+    public final var battleTheme: net.minecraft.class_2960? /* compiled code */
+        public final set(value: net.minecraft.class_2960?) { /* compiled code */ }
+
+    public open val type: com.cobblemon.mod.common.api.battles.model.actor.ActorType /* compiled code */
+
+    public open fun getName(): net.minecraft.class_5250 { /* compiled code */ }
+
+    public open fun nameOwned(name: kotlin.String): net.minecraft.class_5250 { /* compiled code */ }
+
+    public open fun getPlayerUUIDs(): kotlin.collections.Set<java.util.UUID> { /* compiled code */ }
+
+    public open fun awardExperience(battlePokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon, experience: kotlin.Int): kotlin.Unit { /* compiled code */ }
+
+    public open fun sendUpdate(packet: com.cobblemon.mod.common.api.net.NetworkPacket<*>): kotlin.Unit { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles.actor
+
+public open class MultiPokemonBattleActor public constructor(pokemonList: kotlin.collections.List<com.cobblemon.mod.common.battles.pokemon.BattlePokemon>, artificialDecider: com.cobblemon.mod.common.api.battles.model.ai.BattleAI = COMPILED_CODE, uuid: java.util.UUID = COMPILED_CODE) : com.cobblemon.mod.common.api.battles.model.actor.AIBattleActor {
+    public open val type: com.cobblemon.mod.common.api.battles.model.actor.ActorType /* compiled code */
+
+    public open fun getName(): net.minecraft.class_5250 { /* compiled code */ }
+
+    public open fun nameOwned(name: kotlin.String): net.minecraft.class_5250 { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles.actor
+
+public open class PokemonBattleActor public constructor(uuid: java.util.UUID, pokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon, fleeDistance: kotlin.Float, artificialDecider: com.cobblemon.mod.common.api.battles.model.ai.BattleAI = COMPILED_CODE) : com.cobblemon.mod.common.api.battles.model.actor.AIBattleActor, com.cobblemon.mod.common.api.battles.model.actor.EntityBackedBattleActor<com.cobblemon.mod.common.entity.pokemon.PokemonEntity>, com.cobblemon.mod.common.api.battles.model.actor.FleeableBattleActor {
+    public final val pokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon /* compiled code */
+
+    public open val fleeDistance: kotlin.Float /* compiled code */
+
+    public open val initialPos: net.minecraft.class_243? /* compiled code */
+
+    public open val entity: com.cobblemon.mod.common.entity.pokemon.PokemonEntity? /* compiled code */
+        public open get() { /* compiled code */ }
+
+    public open val type: com.cobblemon.mod.common.api.battles.model.actor.ActorType /* compiled code */
+
+    public open fun getName(): net.minecraft.class_5250 { /* compiled code */ }
+
+    public open fun nameOwned(name: kotlin.String): net.minecraft.class_5250 { /* compiled code */ }
+
+    public open fun getWorldAndPosition(): kotlin.Pair<net.minecraft.class_3218, net.minecraft.class_243>? { /* compiled code */ }
+
+    public open fun sendUpdate(packet: com.cobblemon.mod.common.api.net.NetworkPacket<*>): kotlin.Unit { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles.actor
+
+public open class TrainerBattleActor public constructor(trainerName: kotlin.String, uuid: java.util.UUID, pokemonList: kotlin.collections.List<com.cobblemon.mod.common.battles.pokemon.BattlePokemon>, artificialDecider: com.cobblemon.mod.common.api.battles.model.ai.BattleAI) : com.cobblemon.mod.common.api.battles.model.actor.AIBattleActor {
+    public final val trainerName: kotlin.String /* compiled code */
+
+    public open val type: com.cobblemon.mod.common.api.battles.model.actor.ActorType /* compiled code */
+
+    public open fun getName(): net.minecraft.class_5250 /* platform type */ { /* compiled code */ }
+
+    public open fun nameOwned(name: kotlin.String): net.minecraft.class_5250 { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles.pokemon
+
+public final class BattleMove public constructor(move: com.cobblemon.mod.common.api.moves.Move) {
+    public final val move: com.cobblemon.mod.common.api.moves.Move /* compiled code */
+
+    public final var disabled: kotlin.Boolean /* compiled code */
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles.pokemon
+
+public open class BattlePokemon public constructor(originalPokemon: com.cobblemon.mod.common.pokemon.Pokemon, effectedPokemon: com.cobblemon.mod.common.pokemon.Pokemon = COMPILED_CODE, postBattlePokemonOperations: kotlin.collections.MutableList<(com.cobblemon.mod.common.battles.pokemon.BattlePokemon) -> kotlin.Unit> = COMPILED_CODE, postBattleEntityOperations: kotlin.collections.MutableList<(com.cobblemon.mod.common.entity.pokemon.PokemonEntity) -> kotlin.Unit> = COMPILED_CODE) {
+    public companion object {
+        public final fun safeCopyOf(pokemon: com.cobblemon.mod.common.pokemon.Pokemon): com.cobblemon.mod.common.battles.pokemon.BattlePokemon { /* compiled code */ }
+
+        public final fun playerOwned(pokemon: com.cobblemon.mod.common.pokemon.Pokemon): com.cobblemon.mod.common.battles.pokemon.BattlePokemon { /* compiled code */ }
+    }
+
+    public constructor(originalPokemon: com.cobblemon.mod.common.pokemon.Pokemon, effectedPokemon: com.cobblemon.mod.common.pokemon.Pokemon, postBattleEntityOperation: (com.cobblemon.mod.common.entity.pokemon.PokemonEntity) -> kotlin.Unit) { /* compiled code */ }
+
+    public final val originalPokemon: com.cobblemon.mod.common.pokemon.Pokemon /* compiled code */
+
+    public final val effectedPokemon: com.cobblemon.mod.common.pokemon.Pokemon /* compiled code */
+
+    public final var postBattlePokemonOperations: kotlin.collections.MutableList<(com.cobblemon.mod.common.battles.pokemon.BattlePokemon) -> kotlin.Unit> /* compiled code */
+
+    public final var postBattleEntityOperations: kotlin.collections.MutableList<(com.cobblemon.mod.common.entity.pokemon.PokemonEntity) -> kotlin.Unit> /* compiled code */
+
+    public final lateinit var actor: com.cobblemon.mod.common.api.battles.model.actor.BattleActor /* compiled code */
+
+    public final val struct: com.bedrockk.molang.runtime.struct.QueryStruct /* compiled code */
+
+    public final val uuid: java.util.UUID /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final val health: kotlin.Int /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final val maxHealth: kotlin.Int /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final val ivs: com.cobblemon.mod.common.pokemon.IVs /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final val nature: com.cobblemon.mod.common.pokemon.Nature /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final val moveSet: com.cobblemon.mod.common.api.moves.MoveSet /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final val statChanges: kotlin.collections.MutableMap<com.cobblemon.mod.common.api.pokemon.stats.Stat, kotlin.Int> /* compiled code */
+
+    public final var gone: kotlin.Boolean /* compiled code */
+
+    public final val entity: com.cobblemon.mod.common.entity.pokemon.PokemonEntity? /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final var willBeSwitchedIn: kotlin.Boolean /* compiled code */
+
+    public final val facedOpponents: kotlin.collections.MutableSet<com.cobblemon.mod.common.battles.pokemon.BattlePokemon> /* compiled code */
+
+    public final val heldItemManager: com.cobblemon.mod.common.api.pokemon.helditem.HeldItemManager by COMPILED_CODE /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final val contextManager: com.cobblemon.mod.common.battles.interpreter.ContextManager /* compiled code */
+
+    public open fun getName(): net.minecraft.class_5250 { /* compiled code */ }
+
+    public final fun sendUpdate(): kotlin.Unit { /* compiled code */ }
+
+    public final fun isSentOut(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun canBeSentOut(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun getIllusion(): com.cobblemon.mod.common.battles.pokemon.BattlePokemon? { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final class ActiveBattlePokemon public constructor(actor: com.cobblemon.mod.common.api.battles.model.actor.BattleActor, battlePokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon? = COMPILED_CODE) : com.cobblemon.mod.common.battles.Targetable {
+    public final val actor: com.cobblemon.mod.common.api.battles.model.actor.BattleActor /* compiled code */
+
+    public final var battlePokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon? /* compiled code */
+
+    public final val battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle /* compiled code */
+
+    public final var position: kotlin.Pair<net.minecraft.class_3218, net.minecraft.class_243>? /* compiled code */
+
+    public final var illusion: com.cobblemon.mod.common.battles.pokemon.BattlePokemon? /* compiled code */
+
+    public final fun getSide(): com.cobblemon.mod.common.battles.BattleSide { /* compiled code */ }
+
+    public open fun getAllActivePokemon(): kotlin.collections.Iterable<com.cobblemon.mod.common.battles.ActiveBattlePokemon> { /* compiled code */ }
+
+    public open fun getActorShowdownId(): kotlin.String { /* compiled code */ }
+
+    public open fun getActorPokemon(): kotlin.collections.MutableList<com.cobblemon.mod.common.battles.ActiveBattlePokemon> { /* compiled code */ }
+
+    public open fun getSidePokemon(): kotlin.collections.List<com.cobblemon.mod.common.battles.ActiveBattlePokemon> { /* compiled code */ }
+
+    public open fun getFormat(): com.cobblemon.mod.common.battles.BattleFormat { /* compiled code */ }
+
+    public open fun isAllied(other: com.cobblemon.mod.common.battles.Targetable): kotlin.Boolean { /* compiled code */ }
+
+    public open fun hasPokemon(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun isGone(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun isAlive(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun getSendOutPosition(): net.minecraft.class_243? { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final class BattleSide public constructor(vararg actors: com.cobblemon.mod.common.api.battles.model.actor.BattleActor) {
+    public final val actors: kotlin.Array<out com.cobblemon.mod.common.api.battles.model.actor.BattleActor> /* compiled code */
+
+    public final val activePokemon: kotlin.collections.List<com.cobblemon.mod.common.battles.ActiveBattlePokemon> /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final lateinit var battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle /* compiled code */
+
+    public final val contextManager: com.cobblemon.mod.common.battles.interpreter.ContextManager /* compiled code */
+
+    public final fun getOppositeSide(): com.cobblemon.mod.common.battles.BattleSide { /* compiled code */ }
+
+    public final fun broadcastChatMessage(component: net.minecraft.class_2561): kotlin.Unit { /* compiled code */ }
+
+    public final fun stillSendingOut(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun playCries(): kotlin.Unit { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final class InBattleMove public constructor() {
+    public companion object {
+        public final fun loadFromBuffer(buffer: net.minecraft.class_9129): com.cobblemon.mod.common.battles.InBattleMove { /* compiled code */ }
+    }
+
+    public final lateinit var id: kotlin.String /* compiled code */
+
+    public final lateinit var move: kotlin.String /* compiled code */
+
+    public final var pp: kotlin.Int /* compiled code */
+
+    public final var maxpp: kotlin.Int /* compiled code */
+
+    public final var target: com.cobblemon.mod.common.battles.MoveTarget /* compiled code */
+
+    public final var disabled: kotlin.Boolean /* compiled code */
+
+    public final var gimmickMove: com.cobblemon.mod.common.battles.InBattleGimmickMove? /* compiled code */
+
+    public final fun getTargets(user: com.cobblemon.mod.common.battles.ActiveBattlePokemon): kotlin.collections.List<com.cobblemon.mod.common.battles.Targetable>? { /* compiled code */ }
+
+    public final fun canBeUsed(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun mustBeUsed(): kotlin.Boolean { /* compiled code */ }
+
+    public final fun saveToBuffer(buffer: net.minecraft.class_9129): kotlin.Unit { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final data class MoveActionResponse public constructor(moveName: kotlin.String, targetPnx: kotlin.String? = COMPILED_CODE, gimmickID: kotlin.String? = COMPILED_CODE) : com.cobblemon.mod.common.battles.ShowdownActionResponse {
+    public final var moveName: kotlin.String /* compiled code */
+
+    public final var targetPnx: kotlin.String? /* compiled code */
+
+    public final var gimmickID: kotlin.String? /* compiled code */
+
+    public open fun isValid(activeBattlePokemon: com.cobblemon.mod.common.battles.ActiveBattlePokemon, showdownMoveSet: com.cobblemon.mod.common.battles.ShowdownMoveset?, forceSwitch: kotlin.Boolean): kotlin.Boolean { /* compiled code */ }
+
+    public open fun toShowdownString(activeBattlePokemon: com.cobblemon.mod.common.battles.ActiveBattlePokemon, showdownMoveSet: com.cobblemon.mod.common.battles.ShowdownMoveset?): kotlin.String { /* compiled code */ }
+
+    public open fun saveToBuffer(buffer: net.minecraft.class_9129): kotlin.Unit { /* compiled code */ }
+
+    public open fun loadFromBuffer(buffer: net.minecraft.class_9129): com.cobblemon.mod.common.battles.ShowdownActionResponse { /* compiled code */ }
+
+    public final operator fun component1(): kotlin.String { /* compiled code */ }
+
+    public final operator fun component2(): kotlin.String? { /* compiled code */ }
+
+    public final operator fun component3(): kotlin.String? { /* compiled code */ }
+
+    public final fun copy(moveName: kotlin.String = COMPILED_CODE, targetPnx: kotlin.String? = COMPILED_CODE, gimmickID: kotlin.String? = COMPILED_CODE): com.cobblemon.mod.common.battles.MoveActionResponse { /* compiled code */ }
+
+    public open operator fun equals(other: kotlin.Any?): kotlin.Boolean { /* compiled code */ }
+
+    public open fun hashCode(): kotlin.Int { /* compiled code */ }
+
+    public open fun toString(): kotlin.String { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final enum class MoveTarget private constructor(targetList: (com.cobblemon.mod.common.battles.Targetable) -> kotlin.collections.List<com.cobblemon.mod.common.battles.Targetable>? = COMPILED_CODE) : kotlin.Enum<com.cobblemon.mod.common.battles.MoveTarget> {
+    any,
+
+    all,
+
+    allAdjacent,
+
+    allAdjacentFoes,
+
+    self,
+
+    normal,
+
+    randomNormal,
+
+    allies,
+
+    allySide,
+
+    allyTeam,
+
+    adjacentAlly,
+
+    adjacentAllyOrSelf,
+
+    adjacentFoe,
+
+    foeSide,
+
+    scripted;
+
+    public companion object {
+        private final val VALUES: kotlin.Array<com.cobblemon.mod.common.battles.MoveTarget> /* compiled code */
+
+        public final fun fromShowdownId(showdownId: kotlin.String): com.cobblemon.mod.common.battles.MoveTarget { /* compiled code */ }
+    }
+
+    public final val targetList: (com.cobblemon.mod.common.battles.Targetable) -> kotlin.collections.List<com.cobblemon.mod.common.battles.Targetable>? /* compiled code */
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final class ShowdownActionRequest public constructor(wait: kotlin.Boolean = COMPILED_CODE, active: kotlin.collections.MutableList<com.cobblemon.mod.common.battles.ShowdownMoveset>? = COMPILED_CODE, forceSwitch: kotlin.collections.List<kotlin.Boolean> = COMPILED_CODE, noCancel: kotlin.Boolean = COMPILED_CODE, side: com.cobblemon.mod.common.battles.ShowdownSide? = COMPILED_CODE) {
+    public final var wait: kotlin.Boolean /* compiled code */
+
+    public final var active: kotlin.collections.MutableList<com.cobblemon.mod.common.battles.ShowdownMoveset>? /* compiled code */
+
+    public final var forceSwitch: kotlin.collections.List<kotlin.Boolean> /* compiled code */
+
+    public final var noCancel: kotlin.Boolean /* compiled code */
+
+    public final var side: com.cobblemon.mod.common.battles.ShowdownSide? /* compiled code */
+
+    public final fun <T, E : com.cobblemon.mod.common.battles.Targetable> iterate(activePokemon: kotlin.collections.List<E>, iterator: (E, com.cobblemon.mod.common.battles.ShowdownMoveset?, kotlin.Boolean) -> T): kotlin.collections.List<T> { /* compiled code */ }
+
+    public final fun saveToBuffer(buffer: net.minecraft.class_9129): kotlin.Unit { /* compiled code */ }
+
+    public final fun loadFromBuffer(buffer: net.minecraft.class_9129): com.cobblemon.mod.common.battles.ShowdownActionRequest { /* compiled code */ }
+
+    public final fun sanitize(battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle, battleActor: com.cobblemon.mod.common.api.battles.model.actor.BattleActor): kotlin.Unit { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public abstract class ShowdownActionResponse public constructor(type: com.cobblemon.mod.common.battles.ShowdownActionResponseType) {
+    public companion object {
+        public final fun loadFromBuffer(buffer: net.minecraft.class_9129): com.cobblemon.mod.common.battles.ShowdownActionResponse { /* compiled code */ }
+    }
+
+    public final val type: com.cobblemon.mod.common.battles.ShowdownActionResponseType /* compiled code */
+
+    public open fun saveToBuffer(buffer: net.minecraft.class_9129): kotlin.Unit { /* compiled code */ }
+
+    public open fun loadFromBuffer(buffer: net.minecraft.class_9129): com.cobblemon.mod.common.battles.ShowdownActionResponse { /* compiled code */ }
+
+    public abstract fun isValid(activeBattlePokemon: com.cobblemon.mod.common.battles.ActiveBattlePokemon, showdownMoveSet: com.cobblemon.mod.common.battles.ShowdownMoveset?, forceSwitch: kotlin.Boolean): kotlin.Boolean
+
+    public abstract fun toShowdownString(activeBattlePokemon: com.cobblemon.mod.common.battles.ActiveBattlePokemon, showdownMoveSet: com.cobblemon.mod.common.battles.ShowdownMoveset?): kotlin.String
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final class ShowdownPokemon public constructor() {
+    public final lateinit var ident: kotlin.String /* compiled code */
+
+    public final lateinit var details: kotlin.String /* compiled code */
+
+    public final lateinit var condition: kotlin.String /* compiled code */
+
+    public final var active: kotlin.Boolean /* compiled code */
+
+    public final val moves: kotlin.collections.MutableList<kotlin.String> /* compiled code */
+
+    public final lateinit var baseAbility: kotlin.String /* compiled code */
+
+    public final lateinit var pokeball: kotlin.String /* compiled code */
+
+    public final lateinit var ability: kotlin.String /* compiled code */
+
+    public final var baseTypes: kotlin.collections.MutableList<kotlin.String> /* compiled code */
+
+    public final var types: kotlin.collections.MutableList<kotlin.String> /* compiled code */
+
+    public final var commanding: kotlin.Boolean /* compiled code */
+
+    public final var reviving: kotlin.Boolean /* compiled code */
+
+    public final val uuid: java.util.UUID by COMPILED_CODE /* compiled code */
+        public final get() { /* compiled code */ }
+
+    public final fun saveToBuffer(buffer: net.minecraft.class_9129): kotlin.Unit { /* compiled code */ }
+
+    public final fun loadFromBuffer(buffer: net.minecraft.class_9129): com.cobblemon.mod.common.battles.ShowdownPokemon { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public final class ShowdownSide public constructor() {
+    public final lateinit var name: java.util.UUID /* compiled code */
+
+    public final lateinit var id: kotlin.String /* compiled code */
+
+    public final lateinit var pokemon: kotlin.collections.List<com.cobblemon.mod.common.battles.ShowdownPokemon> /* compiled code */
+
+    public final fun saveToBuffer(buffer: net.minecraft.class_9129): kotlin.Unit { /* compiled code */ }
+
+    public final fun loadFromBuffer(buffer: net.minecraft.class_9129): com.cobblemon.mod.common.battles.ShowdownSide { /* compiled code */ }
+}
+// IntelliJ API Decompiler stub source generated from a class file
+// Implementation of methods is not available
+
+package com.cobblemon.mod.common.battles
+
+public object ShowdownInterpreter {
+    public final val lastCauser: kotlin.collections.MutableMap<java.util.UUID, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage> /* compiled code */
+
+    private final val updateInstructionParser: kotlin.collections.MutableMap<kotlin.String, (com.cobblemon.mod.common.api.battles.model.PokemonBattle, com.cobblemon.mod.common.battles.dispatch.InstructionSet, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage, kotlin.collections.Iterator<com.cobblemon.mod.common.api.battles.interpreter.BattleMessage>) -> com.cobblemon.mod.common.battles.dispatch.InterpreterInstruction> /* compiled code */
+
+    private final val splitInstructionParser: kotlin.collections.MutableMap<kotlin.String, (com.cobblemon.mod.common.api.battles.model.PokemonBattle, com.cobblemon.mod.common.api.battles.model.actor.BattleActor, com.cobblemon.mod.common.battles.dispatch.InstructionSet, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage, kotlin.collections.Iterator<com.cobblemon.mod.common.api.battles.interpreter.BattleMessage>) -> com.cobblemon.mod.common.battles.dispatch.InterpreterInstruction> /* compiled code */
+
+    private final val sideInstructionParser: kotlin.collections.MutableMap<kotlin.String, (com.cobblemon.mod.common.api.battles.model.PokemonBattle, com.cobblemon.mod.common.api.battles.model.actor.BattleActor, com.cobblemon.mod.common.battles.dispatch.InstructionSet, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage) -> com.cobblemon.mod.common.battles.dispatch.InterpreterInstruction> /* compiled code */
+
+    public final fun interpretMessage(battleId: java.util.UUID, message: kotlin.String): kotlin.Unit { /* compiled code */ }
+
+    public final fun interpret(battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle, rawMessage: kotlin.String): kotlin.Unit { /* compiled code */ }
+
+    public final fun broadcastOptionalAbility(battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle, effect: com.cobblemon.mod.common.api.battles.interpreter.Effect?, pokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon): kotlin.Unit { /* compiled code */ }
+
+    public final fun broadcastAbility(battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle, effect: com.cobblemon.mod.common.api.battles.interpreter.Effect, pokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon): kotlin.Unit { /* compiled code */ }
+
+    public final fun getContextFromFaint(pokemon: com.cobblemon.mod.common.battles.pokemon.BattlePokemon, battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle): com.cobblemon.mod.common.api.battles.interpreter.BattleContext { /* compiled code */ }
+
+    public final fun getContextFromAction(message: com.cobblemon.mod.common.api.battles.interpreter.BattleMessage, type: com.cobblemon.mod.common.api.battles.interpreter.BattleContext.Type, battle: com.cobblemon.mod.common.api.battles.model.PokemonBattle): com.cobblemon.mod.common.api.battles.interpreter.BattleContext { /* compiled code */ }
+
+    @kotlin.jvm.JvmStatic public final fun registerUpdateInstructionParser(id: kotlin.String, callback: (com.cobblemon.mod.common.api.battles.model.PokemonBattle, com.cobblemon.mod.common.battles.dispatch.InstructionSet, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage, kotlin.collections.Iterator<com.cobblemon.mod.common.api.battles.interpreter.BattleMessage>) -> com.cobblemon.mod.common.battles.dispatch.InterpreterInstruction): kotlin.Unit { /* compiled code */ }
+
+    @kotlin.jvm.JvmStatic public final fun registerSplitInstructionParser(id: kotlin.String, callback: (com.cobblemon.mod.common.api.battles.model.PokemonBattle, com.cobblemon.mod.common.api.battles.model.actor.BattleActor, com.cobblemon.mod.common.battles.dispatch.InstructionSet, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage, kotlin.collections.Iterator<com.cobblemon.mod.common.api.battles.interpreter.BattleMessage>) -> com.cobblemon.mod.common.battles.dispatch.InterpreterInstruction): kotlin.Unit { /* compiled code */ }
+
+    @kotlin.jvm.JvmStatic public final fun registerSideInstructionParser(id: kotlin.String, callback: (com.cobblemon.mod.common.api.battles.model.PokemonBattle, com.cobblemon.mod.common.api.battles.model.actor.BattleActor, com.cobblemon.mod.common.battles.dispatch.InstructionSet, com.cobblemon.mod.common.api.battles.interpreter.BattleMessage) -> com.cobblemon.mod.common.battles.dispatch.InterpreterInstruction): kotlin.Unit { /* compiled code */ }
+}
