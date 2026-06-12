@@ -1,26 +1,28 @@
 {
 	"schemaVersion": 1,
-	"id": "tc-battle-growth",
+	"id": "tc_cobblemon_world_reborn",
 	"version": "1.0.0",
-	"name": "TC Cobblemon: Battle Growth",
-	"description": "Pokémon gain experience during battle. Deal and take damage to level up and evolve instantly in combat.",
+	"name": "TC Cobblemon World Reborn",
+	"description": "A structure spawning mod for Cobblemon.",
 	"authors": ["Toan Cao"],
 	"contact": {},
 	"license": "MIT",
 	"environment": "*",
-	"icon": "assets/tcbattlegrowth/icon.png",
 	"entrypoints": {
 		"main": [
-			"com.toancao.battlegrowth.BattleGrowthMod"
+			{
+				"adapter": "kotlin",
+				"value": "com.toancao.pokemonai.PokemonAIMod"
+			}
 		]
 	},
 	"mixins": [
-		"tcbattlegrowth.mixins.json"
+		"pokemonai.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.15.0",
 		"minecraft": "~1.21.1",
 		"cobblemon": "*",
-		"cloth-config2": "*"
+		"fabric-language-kotlin": "*"
 	}
 }
