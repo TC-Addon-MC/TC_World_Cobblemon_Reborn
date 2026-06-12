@@ -58,6 +58,12 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
 }
 
+// Make Java compilation aware of Kotlin compiled classes
+// This fixes VSCode Java Language Server false-positive "cannot resolve" errors
+// for Kotlin-defined classes (DebugUtils, DragonGateData, DragonGateManager, etc.)
+compileJava.dependsOn compileKotlin
+compileJava.classpath += files(compileKotlin.destinationDirectory)
+
 sourceSets {
 	main.kotlin.srcDirs += 'src/main/java'
 	main.java.srcDirs += 'src/main/java'

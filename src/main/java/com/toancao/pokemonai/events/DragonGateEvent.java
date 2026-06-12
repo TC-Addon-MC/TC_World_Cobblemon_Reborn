@@ -5,7 +5,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.toancao.pokemonai.utils.DebugUtils;
 import com.toancao.pokemonai.events.DragonGateData;
 import com.toancao.pokemonai.events.DragonGateManager;
