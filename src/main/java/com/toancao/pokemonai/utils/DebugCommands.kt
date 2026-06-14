@@ -45,32 +45,15 @@ object DebugCommands {
                                         .then(
                                             Commands.argument("actionName", com.mojang.brigadier.arguments.StringArgumentType.word())
                                                 .suggests { _, builder ->
-                                                    val actions = listOf("jump")
+                                                    val actions = listOf("jump", "evolve")
                                                     actions.forEach { builder.suggest(it) }
                                                     builder.buildFuture()
                                                 }
-                                                .executes { context ->
-                                                    val pokemonName = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "pokemon_name")
-                                                    val targets = net.minecraft.commands.arguments.EntityArgument.getEntities(context, "targets")
-                                                    val actionName = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "actionName")
-                                                    var count = 0
-                                                    
-                                                    for (entity in targets) {
-                                                        if (entity is com.cobblemon.mod.common.entity.pokemon.PokemonEntity) {
-                                                            val species = CobblemonBridge.getSpeciesName(entity)
-                                                            if (pokemonName.equals("all", ignoreCase = true) || species.equals(pokemonName, ignoreCase = true)) {
-                                                                when (actionName.lowercase()) {
-                                                                    "jump" -> {
-                                                                        com.toancao.pokemonai.behaviors.water.JumpOutOfWaterGoal(entity).start()
-                                                                        count++
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    context.source.sendSuccess({ Component.literal("Executed action '\$actionName' on \$count \$pokemonName(s)") }, true)
-                                                    count
-                                                }
+                                                .then(
+                                                    Commands.argument("same_y", com.mojang.brigadier.arguments.BoolArgumentType.bool())
+                                                        .executes { context -> executeAction(context, true) }
+                                                )
+                                                .executes { context -> executeAction(context, false) }
                                         )
                                 )
                         )
@@ -80,43 +63,57 @@ object DebugCommands {
                         .then(
                             Commands.literal("dragongate")
                                 .then(
-                                    Commands.literal("add")
-                                        .then(
-                                            Commands.argument("startX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
-                                            .then(Commands.argument("startY", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
-                                            .then(Commands.argument("startZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
-                                            .then(Commands.argument("endX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
-                                            .then(Commands.argument("endY", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
-                                            .then(Commands.argument("endZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
-                                                .executes { context ->
-                                                    val startX = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "startX")
-                                                    val startY = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "startY")
-                                                    val startZ = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "startZ")
-                                                    val endX = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "endX")
-                                                    val endY = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "endY")
-                                                    val endZ = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "endZ")
-                                                    
-                                                    val source = context.source
-                                                    val dimension = source.level.dimension().location().toString()
-                                                    val startPos = net.minecraft.core.BlockPos(startX, startY, startZ)
-                                                    val endPos = net.minecraft.core.BlockPos(endX, endY, endZ)
-                                                    
-                                                    com.toancao.pokemonai.events.DragonGateManager.addGate(dimension, startPos, endPos)
-                                                    source.sendSuccess({ Component.literal("Added Dragon Gate in $dimension from ($startX, $startY, $startZ) to ($endX, $endY, $endZ)") }, true)
-                                                    1
-                                                }
-                                            ))))))
-                                )
-                                .then(
-                                    Commands.literal("trigger")
+                                    Commands.literal("start")
                                         .executes { context ->
                                             com.toancao.pokemonai.events.DragonGateEvent.trigger(context.source.level)
-                                            context.source.sendSuccess({ Component.literal("Triggered Dragon Gate Event manually!") }, true)
+                                            context.source.sendSuccess({ Component.literal("Started Dragon Gate Event manually!") }, true)
+                                            1
+                                        }
+                                )
+                                .then(
+                                    Commands.literal("stop")
+                                        .executes { context ->
+                                            com.toancao.pokemonai.events.DragonGateEvent.stop(context.source.level)
+                                            context.source.sendSuccess({ Component.literal("Stopped Dragon Gate Event manually!") }, true)
                                             1
                                         }
                                 )
                         )
                 )
         )
+    }
+
+    private fun executeAction(context: com.mojang.brigadier.context.CommandContext<CommandSourceStack>, checkY: Boolean): Int {
+        val pokemonName = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "pokemon_name")
+        val targets = net.minecraft.commands.arguments.EntityArgument.getEntities(context, "targets")
+        val actionName = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "actionName")
+        var count = 0
+        
+        val executor = context.source.entity
+
+        for (entity in targets) {
+            if (checkY && executor != null) {
+                if (Math.abs(entity.y - executor.y) > 2.0) {
+                    continue // Skip if not on same Y level
+                }
+            }
+            if (entity is com.cobblemon.mod.common.entity.pokemon.PokemonEntity) {
+                val species = CobblemonBridge.getSpeciesName(entity)
+                if (pokemonName.equals("all", ignoreCase = true) || species.equals(pokemonName, ignoreCase = true)) {
+                    when (actionName.lowercase()) {
+                        "jump" -> {
+                            com.toancao.pokemonai.behaviors.water.JumpOutOfWaterGoal(entity).start()
+                            count++
+                        }
+                        "evolve" -> {
+                            com.toancao.pokemonai.evolution.EvolutionManager.forceEvolve(entity, "gyarados")
+                            count++
+                        }
+                    }
+                }
+            }
+        }
+        context.source.sendSuccess({ Component.literal("Executed action '\$actionName' on \$count \$pokemonName(s)") }, true)
+        return count
     }
 }

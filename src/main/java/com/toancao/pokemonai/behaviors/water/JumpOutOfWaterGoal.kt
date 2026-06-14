@@ -9,10 +9,12 @@ import net.minecraft.world.entity.LivingEntity
 
 class JumpOutOfWaterGoal(
     private val entity: PokemonEntity,
-    private val jumpChance: Float = RandomUtils.Probability.MEDIUM.chance,
-    private val cooldownTicks: Int = 200
+    private val jumpChance: Float = RandomUtils.Probability.LOW.chance,
+    private val cooldownTicks: Int = 600
 ) : Goal() {
     private var cooldown = 0
+    private var state = 0 // 0: idle, 1: swimming to surface
+    private var timeoutTicks = 0
 
     override fun canUse(): Boolean {
         if (cooldown > 0) {
@@ -24,24 +26,44 @@ class JumpOutOfWaterGoal(
     }
 
     override fun start() {
-        val attack = (entity as LivingEntity).getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
-        val sizeWeight = (entity as LivingEntity).bbWidth * (entity as LivingEntity).bbHeight
+        state = 1
+        timeoutTicks = 0
+    }
 
-        // Base jump height is 4.0. Attack increases height, size (weight) decreases it.
-        val statFactor = (attack / Math.max(sizeWeight.toDouble(), 0.1)) * 0.5
-        val randomFactor = Math.random() * 2.0 // Random bonus 0.0 to 2.0
+    override fun tick() {
+        if (state != 1) return
+        val le = entity as LivingEntity
+        val level = le.level()
+        val pos = le.blockPosition()
         
-        // Cap height to 2 meters (7 feet). In MovementUtils, a height of 3.2 results in 2 blocks of physical jump height.
-        val height = Math.min(3.2, Math.max(2.0, 2.0 + statFactor + randomFactor))
+        val isAtSurface = !level.getFluidState(pos.above()).`is`(net.minecraft.tags.FluidTags.WATER)
+        
+        if (isAtSurface) {
+            val attack = le.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
+            val sizeWeight = le.bbWidth * le.bbHeight
 
-        MovementUtils.applyVerticalVelocity(entity as net.minecraft.world.entity.Entity, height)
-        cooldown = cooldownTicks
-        
-        com.toancao.pokemonai.utils.DebugUtils.logAction(entity, "JumpOutOfWater", "Jumped with height " + String.format("%.2f", height) + " (Attack: " + String.format("%.1f", attack) + ", SizeWeight: " + String.format("%.2f", sizeWeight) + ")")
+            val statFactor = (attack / Math.max(sizeWeight.toDouble(), 0.1)) * 0.5
+            val randomFactor = Math.random() * 2.0 
+            
+            val height = Math.min(3.2, Math.max(2.0, 2.0 + statFactor + randomFactor))
+
+            MovementUtils.applyVerticalVelocity(entity as net.minecraft.world.entity.Entity, height)
+            
+            state = 2 // Finished jumping
+            cooldown = cooldownTicks
+        } else {
+            // Bơi dần lên mặt nước một cách êm ái thay vì giật cục
+            le.deltaMovement = net.minecraft.world.phys.Vec3(le.deltaMovement.x * 0.9, 0.15, le.deltaMovement.z * 0.9)
+            timeoutTicks++
+            if (timeoutTicks > 200) { // Hết thời gian bơi lên mà chưa tới mặt nước (kẹt)
+                state = 2
+                cooldown = cooldownTicks
+            }
+        }
     }
 
     override fun canContinueToUse(): Boolean {
-        return false // One-shot action
+        return state == 1 && (entity as LivingEntity).isInWater
     }
 }
 

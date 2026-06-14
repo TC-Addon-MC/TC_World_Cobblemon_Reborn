@@ -12,7 +12,9 @@ object MagikarpConfig {
         BehaviorRegistry.Entry(2, { entity -> com.toancao.pokemonai.behaviors.water.WeakSwimmerGoal(entity) }),
         BehaviorRegistry.Entry(3, { entity -> JumpOutOfWaterGoal(entity) }),
         BehaviorRegistry.Entry(4, { entity -> SwimUpwardGoal(entity) }),
-        BehaviorRegistry.Entry(5, { entity -> DragonGateChallengeGoal(entity) })
+        BehaviorRegistry.Entry(5, { entity -> DragonGateChallengeGoal(entity) }),
+        BehaviorRegistry.Entry(6, { entity -> com.toancao.pokemonai.behaviors.water.DragonGateFreeSwimGoal(entity) }),
+        BehaviorRegistry.Entry(7, { entity -> com.toancao.pokemonai.behaviors.water.DragonGateJumpBackGoal(entity) })
     )
 
     // A data class for profile config if needed, here just defined locally

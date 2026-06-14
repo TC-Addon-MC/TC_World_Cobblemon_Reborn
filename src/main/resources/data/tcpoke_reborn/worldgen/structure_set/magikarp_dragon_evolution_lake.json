@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "tcpoke_reborn:magikarp_dragon_evolution_lake",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 120,
+    "separation": 80,
+    "salt": 194827364
+  }
+}

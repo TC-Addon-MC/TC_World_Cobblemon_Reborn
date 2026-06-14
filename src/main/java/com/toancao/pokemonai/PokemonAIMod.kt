@@ -21,6 +21,7 @@ object PokemonAIMod : ModInitializer {
         PokemonAttachments.register()
 
         // Register event handlers & commands
+        com.toancao.pokemonai.registry.BlockRegistry.register()
         EmotionEventHandler.register()
         EvolutionManager.register()
         com.toancao.pokemonai.utils.DebugCommands.register()
@@ -33,9 +34,11 @@ object PokemonAIMod : ModInitializer {
             MagikarpRageRule()
         ))
 
-        // Example for registering other species (like Feebas, Goldeen)
-        // BehaviorRegistry.register("feebas", listOf(...))
-        // EvolutionRegistry.register("feebas", listOf(...))
+        // Register Gyarados for the event goals
+        BehaviorRegistry.register("gyarados", listOf(
+            com.toancao.pokemonai.registry.BehaviorRegistry.Entry(6, { entity -> com.toancao.pokemonai.behaviors.water.DragonGateFreeSwimGoal(entity) }),
+            com.toancao.pokemonai.registry.BehaviorRegistry.Entry(7, { entity -> com.toancao.pokemonai.behaviors.water.DragonGateJumpBackGoal(entity) })
+        ))
         
         logger.info("Pokemon AI Addon Initialized successfully.")
     }
