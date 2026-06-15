@@ -13,9 +13,7 @@ class DragonGateFreeSwimGoal(private val pokemonEntity: PokemonEntity) : Goal() 
     private var wanderTicks = 0
 
     override fun canUse(): Boolean {
-        if (DragonGateEvent.currentPhase != DragonGateEvent.EventPhase.FREE_SWIM) return false
-        // Can be used by Gyarados (resting tag) or late Magikarps (challenger tag)
-        return entity.tags.contains("gyarados_resting") || entity.tags.contains("dragon_gate_challenger")
+        return false // Disabled to let dragons freely do what they want without being forced to move or stand still
     }
 
     override fun canContinueToUse() = canUse()

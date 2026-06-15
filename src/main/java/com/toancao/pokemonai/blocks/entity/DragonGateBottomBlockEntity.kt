@@ -31,6 +31,9 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
             return
         }
 
+        // Phá các vật cản dọc theo ĐƯỜNG ĐI ĐÃ TÍNH TOÁN
+        explodeTunnel(level, path)
+
         val waypointsToPlace = mutableListOf<BlockPos>()
         var i = 8
         while (i < path.size - 4) {
@@ -55,6 +58,32 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
 
         this.topPos = currentTarget
         setChanged()
+    }
+
+    private fun explodeTunnel(level: ServerLevel, path: List<BlockPos>) {
+        for (centerPos in path) {
+            // Rộng 3x3 (-1 đến 1), cao 1 đến 3 block phía trên mặt nước
+            for (ox in -1..1) {
+                for (oy in 1..3) {
+                    for (oz in -1..1) {
+                        val checkPos = centerPos.offset(ox, oy, oz)
+                        val state = level.getBlockState(checkPos)
+                        
+                        val isLeaves = state.`is`(net.minecraft.tags.BlockTags.LEAVES)
+                        val isLogs = state.`is`(net.minecraft.tags.BlockTags.LOGS)
+                        
+                        // Kiểm tra xem block có thuộc mod TC không (để giữ lại)
+                        val regName = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.block)
+                        val isTcBlock = regName.namespace == "tc" || regName.namespace == "pokemonai"
+                        
+                        // Chỉ phá hủy khi nó là lá cây hoặc khối gỗ, và không thuộc mod TC
+                        if (!isTcBlock && (isLeaves || isLogs)) {
+                            level.destroyBlock(checkPos, true)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // A* Pathfinding method through water

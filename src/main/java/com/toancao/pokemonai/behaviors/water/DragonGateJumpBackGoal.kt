@@ -20,9 +20,7 @@ class DragonGateJumpBackGoal(private val pokemonEntity: PokemonEntity) : Goal() 
     private var H = 0.0
 
     override fun canUse(): Boolean {
-        if (DragonGateEvent.currentPhase != DragonGateEvent.EventPhase.JUMPING) return false
-        if (hasJumped) return false
-        return entity.tags.contains("gyarados_resting") || entity.tags.contains("dragon_gate_challenger")
+        return false // Disable jump back goal so dragons act normally
     }
 
     override fun canContinueToUse(): Boolean {
