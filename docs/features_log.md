@@ -13,3 +13,6 @@ Danh sách các tính năng đặc biệt của các loài Pokemon AI trong quá
   - Một cấu trúc (structure) đặc biệt tự động sinh ra trong thế giới, mang kiến trúc hòn đảo/hồ nước truyền thuyết.
   - Cấu trúc tích hợp các khối đặc biệt (`TcTopBottomBlock`, `DragonGateTopBlock`, `DragonGateBottomBlock`, `DragonGateWaypointBlock`).
   - Khi cấu trúc được load, khối master sẽ dùng thuật toán tìm đường (A*) để quét các khối nước, tự động tính toán lộ trình bơi từ chân thác lên đỉnh thác, và sinh ra một đàn Magikarp thử thách ngẫu nhiên (chỉ số, giới tính, kích thước, với tỉ lệ có cá cấp cao hoặc Shiny).
+- **Hệ thống Thông báo Sự kiện (Event Notice API)**:
+  - Cung cấp một API công khai `NoticeEventManager` cho phép bất kỳ mod nào khác (hoặc addon khác) tích hợp sự kiện của họ vào màn hình Event Notice một cách dễ dàng.
+  - Sự kiện Vượt Long Môn (`DragonGateEvent`) đã được đăng ký vào hệ thống này, tự động đồng bộ thời gian chuẩn xác giữa Client và Server, đếm ngược ticks cho từng Phase, và hiển thị chi tiết trạng thái lên menu `Event Device`.

@@ -5,11 +5,9 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.toancao.pokemonai.compat.CobblemonBridge
 import com.toancao.pokemonai.utils.EntityUtils
+import com.toancao.pokemonai.utils.EvolutionEffectUtils
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
-import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.sounds.SoundEvents
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.Entity
 
 object EvolutionManager {
@@ -104,56 +102,19 @@ object EvolutionManager {
             return
         }
 
-        // === Phase 1: Beam bắt đầu + xoáy particles (tick 5 → 50) ===
-        CobblemonBridge.setBeamMode(pokemon, 1)
-
-        // 10 lần vòng xoáy PORTAL particles, mỗi vòng cách 5 tick
-        for (i in 1..10) {
-            val tickDelay = i * 5
-            val radius = 0.6 + i * 0.12
-            val height = i * 0.18
-            val baseAngle = i * 1.25 // xoay góc dần theo mỗi vòng
-            scheduleTask(tickDelay) {
-                val ex = CobblemonBridge.getX(pokemon)
-                val ey = CobblemonBridge.getY(pokemon)
-                val ez = CobblemonBridge.getZ(pokemon)
-                for (j in 0..7) {
-                    val angle = baseAngle + j * (Math.PI * 2.0 / 8.0)
-                    val px = ex + radius * Math.cos(angle)
-                    val pz = ez + radius * Math.sin(angle)
-                    level.sendParticles(ParticleTypes.PORTAL, px, ey + height, pz, 1, 0.0, 0.05, 0.0, 0.05)
-                }
-            }
-        }
-
-        // === Phase 2: Đỉnh — đổi loài và nổ particles (tick 50) ===
-        scheduleTask(50) {
-            val ex = CobblemonBridge.getX(pokemon)
-            val ey = CobblemonBridge.getY(pokemon)
-            val ez = CobblemonBridge.getZ(pokemon)
-
-            // Đổi species/form qua public API — không dùng proxy để tránh crash
-            pokemonData.species = newSpecies
-            pokemonData.form = newSpecies.standardForm
-            pokemonData.initializeMoveset(false)
-            pokemonData.updateAspects()
-
-            // Set beam 2 SAU khi đổi species (phòng SpeciesUpdatePacket reset beam client-side)
-            CobblemonBridge.setBeamMode(pokemon, 2)
-
-            // Vụ nổ particles lúc biến hình
-            level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, ex, ey + 1.0, ez, 2, 0.0, 0.0, 0.0, 0.0)
-            level.sendParticles(ParticleTypes.END_ROD, ex, ey + 0.5, ez, 80, 1.5, 1.5, 1.5, 0.2)
-            level.sendParticles(ParticleTypes.CLOUD, ex, ey + 1.0, ez, 40, 1.0, 0.5, 1.0, 0.04)
-
-            // Âm thanh hoành tráng
-            level.playSound(null, CobblemonBridge.getBlockPos(pokemon), SoundEvents.BEACON_ACTIVATE, SoundSource.NEUTRAL, 3.0f, 0.5f)
-
-            // === Phase 3: Tắt beam (tick 80) ===
-            scheduleTask(30) {
-                CobblemonBridge.setBeamMode(pokemon, 0)
+        EvolutionEffectUtils.playEvolutionSequence(
+            pokemon = pokemon,
+            level = level,
+            onEvolve = {
+                // Đổi species/form qua public API — không dùng proxy để tránh crash
+                pokemonData.species = newSpecies
+                pokemonData.form = newSpecies.standardForm
+                pokemonData.initializeMoveset(false)
+                pokemonData.updateAspects()
+            },
+            onComplete = {
                 evolving.remove(pokemonId)
             }
-        }
+        )
     }
 }

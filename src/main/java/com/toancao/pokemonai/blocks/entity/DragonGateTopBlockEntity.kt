@@ -19,6 +19,10 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
     override fun setRemoved() {
         super.setRemoved()
         DragonGateEvent.topBlocks.remove(worldPosition)
+        val l = level
+        if (l is ServerLevel) {
+            com.toancao.pokemonai.utils.ParticleUtils.clearTornado(l, worldPosition)
+        }
     }
 
     override fun loadAdditional(tag: net.minecraft.nbt.CompoundTag, provider: net.minecraft.core.HolderLookup.Provider) {
@@ -35,10 +39,9 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                 val ticksRemaining = DragonGateEvent.phaseTicks
                 val elapsed = 600 - ticksRemaining
 
-                // Generate Tornado every 15 ticks
-                if (level.server.tickCount % 15 == 0) {
-                    createTornado(level, pos)
-                }
+                if (elapsed == 0) com.toancao.pokemonai.utils.ParticleUtils.createTornado(level, pos)
+                com.toancao.pokemonai.utils.ParticleUtils.updateTornado(level, pos, elapsed)
+                if (ticksRemaining <= 1) com.toancao.pokemonai.utils.ParticleUtils.clearTornado(level, pos)
 
                 // Evolve exponentially using predefined accelerating thresholds within 600 ticks
                 val thresholds = listOf(100, 200, 280, 340, 390, 430, 460, 485, 505, 520, 535, 545, 555, 565, 575, 585, 595)
@@ -46,7 +49,7 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                 if (stepIndex != -1) {
                     val evolveAmount = 1 shl stepIndex // 1, 2, 4, 8, 16...
 
-                    val magikarps = findWaitingMagikarps(level, pos, 10.0)
+                    val magikarps = findWaitingMagikarps(level, pos, 40.0)
                     var evolved = 0
                     for (mk in magikarps) {
                         if (evolved >= evolveAmount) break
@@ -57,7 +60,7 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
 
                 // Force evolve all remaining at the very end (last 5 ticks)
                 if (ticksRemaining == 5) {
-                    val magikarps = findWaitingMagikarps(level, pos, 10.0)
+                    val magikarps = findWaitingMagikarps(level, pos, 40.0)
                     for (mk in magikarps) {
                         evolveMagikarp(level, mk)
                     }
@@ -72,7 +75,16 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                     }
                     for (mk in allMks) {
                         mk.removeTag("waiting_for_evolution")
+                        mk.removeTag("evolution_eligible")
                         mk.removeTag("dragon_gate_challenger") // Revoke their right to evolve
+                        mk.addTag("dragon_gate_free_swim")
+                    }
+                    
+                    val gyaradosList = level.getEntitiesOfClass(LivingEntity::class.java, bounds) { e ->
+                        com.toancao.pokemonai.compat.CobblemonBridge.checkIsPokemonEntity(e) && e.tags.contains("gyarados_resting")
+                    }
+                    for (gy in gyaradosList) {
+                        gy.removeTag("gyarados_resting")
                     }
                 }
             }
@@ -81,7 +93,7 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
         private fun findWaitingMagikarps(level: ServerLevel, pos: BlockPos, radius: Double): List<LivingEntity> {
             val bounds = AABB(pos).inflate(radius)
             return level.getEntitiesOfClass(LivingEntity::class.java, bounds) { e ->
-                com.toancao.pokemonai.compat.CobblemonBridge.checkIsPokemonEntity(e) && e.tags.contains("waiting_for_evolution")
+                com.toancao.pokemonai.compat.CobblemonBridge.checkIsPokemonEntity(e) && e.tags.contains("waiting_for_evolution") && e.tags.contains("evolution_eligible")
             }.filter {
                 it.distanceToSqr(pos.x + 0.5, it.y, pos.z + 0.5) <= radius * radius
             }
@@ -92,16 +104,23 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
             val pokemonData = com.toancao.pokemonai.compat.CobblemonBridge.getPokemonData(pokemonEntity)
             
             if (pokemonData.level >= 20) {
-                level.playSound(null, entity.blockPosition(), net.minecraft.sounds.SoundEvents.ENDER_DRAGON_GROWL, net.minecraft.sounds.SoundSource.NEUTRAL, 5.0f, 0.8f)
-                com.toancao.pokemonai.evolution.EvolutionManager.forceEvolve(pokemonEntity, "gyarados")
+                // Nhảy lên cao (vận tốc ~1.2 đến 1.5 sẽ bay lên khoảng 4-6 block)
+                val jumpVel = 1.2 + level.random.nextDouble() * 0.4
+                entity.deltaMovement = entity.deltaMovement.add(0.0, jumpVel, 0.0)
+                entity.hasImpulse = true
+                entity.hurtMarked = true
                 
-                entity.removeTag("waiting_for_evolution")
-                entity.addTag("gyarados_resting")
-                
-                // Explode roof right when evolving
+                // Chờ 15 tick cho cá nhảy tới đỉnh rồi mới hóa rồng
+                com.toancao.pokemonai.evolution.EvolutionManager.scheduleTask(15) {
+                    level.playSound(null, entity.blockPosition(), net.minecraft.sounds.SoundEvents.ENDER_DRAGON_GROWL, net.minecraft.sounds.SoundSource.NEUTRAL, 5.0f, 0.8f)
+                    com.toancao.pokemonai.evolution.EvolutionManager.forceEvolve(pokemonEntity, "gyarados")
+                    
+                    entity.removeTag("waiting_for_evolution")
+                    
+                    // Explode roof right when evolving
                 com.toancao.pokemonai.evolution.EvolutionManager.scheduleTask(50) {
                     for (dx in -3..3) {
-                        for (dy in 0..8) {
+                        for (dy in 0..15) {
                             for (dz in -3..3) {
                                 val bp = entity.blockPosition().offset(dx, dy, dz)
                                 val state = level.getBlockState(bp)
@@ -112,6 +131,7 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                         }
                     }
                 }
+                }
             } else {
                 // If it's somehow below level 20, it fails the challenge
                 entity.removeTag("waiting_for_evolution")
@@ -119,34 +139,5 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
             }
         }
 
-        private fun createTornado(level: ServerLevel, pos: BlockPos) {
-            val maxHeight = 30.0
-            val maxRadius = 8.0
-            val loops = 15.0
-
-            for (yOffset in 0..(maxHeight * 4).toInt()) {
-                val h = yOffset / 4.0
-                val progress = h / maxHeight
-                
-                val currentRadius = 0.5 + (maxRadius - 0.5) * Math.pow(progress, 3.0) 
-                val angle = progress * Math.PI * 2.0 * loops
-                
-                val px1 = pos.x + 0.5 + currentRadius * Math.cos(angle)
-                val pz1 = pos.z + 0.5 + currentRadius * Math.sin(angle)
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SPLASH, px1, pos.y + h, pz1, 5, 0.5, 0.2, 0.5, 0.1)
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.CLOUD, px1, pos.y + h, pz1, 2, 0.2, 0.2, 0.2, 0.05)
-                
-                val px2 = pos.x + 0.5 + currentRadius * Math.cos(angle + Math.PI)
-                val pz2 = pos.z + 0.5 + currentRadius * Math.sin(angle + Math.PI)
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SPLASH, px2, pos.y + h, pz2, 5, 0.5, 0.2, 0.5, 0.1)
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.CAMPFIRE_COSY_SMOKE, px2, pos.y + h, pz2, 1, 0.2, 0.2, 0.2, 0.02)
-            }
-            
-            for (i in 0..(maxHeight * 2).toInt()) {
-                val h = i / 2.0
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.FALLING_WATER, pos.x + 0.5, pos.y + h, pos.z + 0.5, 10, 0.3, 1.0, 0.3, 0.5)
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE_COLUMN_UP, pos.x + 0.5, pos.y + h, pos.z + 0.5, 5, 0.5, 1.0, 0.5, 0.2)
-            }
-        }
     }
 }

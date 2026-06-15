@@ -13,7 +13,7 @@ class DragonGateFreeSwimGoal(private val pokemonEntity: PokemonEntity) : Goal() 
     private var wanderTicks = 0
 
     override fun canUse(): Boolean {
-        return false // Disabled to let dragons freely do what they want without being forced to move or stand still
+        return entity.tags.contains("dragon_gate_free_swim")
     }
 
     override fun canContinueToUse() = canUse()
@@ -25,53 +25,48 @@ class DragonGateFreeSwimGoal(private val pokemonEntity: PokemonEntity) : Goal() 
 
     override fun tick() {
         wanderTicks++
-        if (wanderTicks > 100 || wanderTarget == null || entity.distanceToSqr(wanderTarget!!) < 4.0) {
+        if (wanderTicks > 200 || wanderTarget == null || entity.distanceToSqr(wanderTarget!!) < 9.0) {
             pickNewWanderTarget()
             wanderTicks = 0
         }
 
         val target = wanderTarget ?: return
-        val dx = target.x - entity.x
-        val dy = target.y - entity.y
-        val dz = target.z - entity.z
-
-        val speed = entity.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED) * 0.4
-        val dist = Math.sqrt(dx * dx + dz * dz)
         
-        if (dist > 0.5) {
-            val horizontal = Vec3(dx, 0.0, dz).normalize()
-            entity.deltaMovement = Vec3(
-                horizontal.x * speed,
-                (dy * 0.1).coerceIn(-0.1, 0.1),
-                horizontal.z * speed
-            )
-            entity.lookAt(
-                net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES,
-                target
-            )
-            entity.yBodyRot = entity.yRotO
+        val mob = entity as? net.minecraft.world.entity.Mob
+        if (mob != null) {
+            mob.moveControl.setWantedPosition(target.x, target.y, target.z, 1.2)
         }
     }
 
     private fun pickNewWanderTarget() {
-        val radius = 10.0
-        val ox = (entity.level().random.nextDouble() - 0.5) * 2 * radius
-        val oz = (entity.level().random.nextDouble() - 0.5) * 2 * radius
-        
-        // Cố gắng tìm mặt nước xung quanh
-        var targetY = entity.y
-        val testPos = BlockPos(Math.floor(entity.x + ox).toInt(), entity.blockY, Math.floor(entity.z + oz).toInt())
-        
-        for (dy in 5 downTo -5) {
-            val p = testPos.above(dy)
-            if (entity.level().getFluidState(p).`is`(net.minecraft.tags.FluidTags.WATER) &&
-                !entity.level().getFluidState(p.above()).`is`(net.minecraft.tags.FluidTags.WATER)
-            ) {
-                targetY = p.y.toDouble() - 0.5
-                break
+        var nearestBottom: BlockPos? = null
+        var minDist = Double.MAX_VALUE
+        for (b in DragonGateEvent.bottomBlocks) {
+            val d = b.distSqr(entity.blockPosition())
+            if (d < minDist) {
+                minDist = d
+                nearestBottom = b
             }
         }
 
-        wanderTarget = Vec3(entity.x + ox, targetY, entity.z + oz)
+        if (nearestBottom != null) {
+            // Hướng về bottom và đi lố qua (overshoot) để bơi dạt đi xa
+            val dx = nearestBottom.x - entity.x
+            val dz = nearestBottom.z - entity.z
+            val len = Math.sqrt(dx * dx + dz * dz)
+            if (len > 0.1) {
+                val nx = dx / len
+                val nz = dz / len
+                wanderTarget = Vec3(nearestBottom.x + nx * 40.0, nearestBottom.y.toDouble(), nearestBottom.z + nz * 40.0)
+            } else {
+                wanderTarget = Vec3(nearestBottom.x.toDouble(), nearestBottom.y.toDouble(), nearestBottom.z.toDouble())
+            }
+        } else {
+            // Fallback nếu không có bottom
+            val radius = 30.0
+            val ox = (entity.level().random.nextDouble() - 0.5) * 2 * radius
+            val oz = (entity.level().random.nextDouble() - 0.5) * 2 * radius
+            wanderTarget = Vec3(entity.x + ox, 62.0, entity.z + oz)
+        }
     }
 }

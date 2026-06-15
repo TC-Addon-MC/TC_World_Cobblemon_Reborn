@@ -14,12 +14,15 @@ import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
+import net.minecraft.world.item.CreativeModeTabs
 
 object BlockRegistry {
     val DRAGON_GATE_BOTTOM_BLOCK = DragonGateBottomBlock()
     val DRAGON_GATE_WAYPOINT_BLOCK = DragonGateWaypointBlock()
     val DRAGON_GATE_TOP_BLOCK = DragonGateTopBlock()
     val TC_TOP_BOTTOM_BLOCK = TcTopBottomBlock()
+    val EVENT_DEVICE = com.toancao.pokemonai.items.EventDeviceItem(net.minecraft.world.item.Item.Properties().stacksTo(1))
 
     val DRAGON_GATE_BOTTOM_BLOCK_ENTITY: BlockEntityType<DragonGateBottomBlockEntity> = BlockEntityType.Builder.of(
         ::DragonGateBottomBlockEntity, DRAGON_GATE_BOTTOM_BLOCK
@@ -44,6 +47,12 @@ object BlockRegistry {
         registerBlock("tc_top_bottom", TC_TOP_BOTTOM_BLOCK)
 
         Registry.register(
+            BuiltInRegistries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "event_device"),
+            EVENT_DEVICE
+        )
+
+        Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
             ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "dragon_gate_bottom_entity"),
             DRAGON_GATE_BOTTOM_BLOCK_ENTITY
@@ -60,12 +69,16 @@ object BlockRegistry {
             ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "dragon_gate_top_entity"),
             DRAGON_GATE_TOP_BLOCK_ENTITY
         )
-        
+
         Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
             ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "tc_top_bottom_entity"),
             TC_TOP_BOTTOM_BLOCK_ENTITY
         )
+
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(ItemGroupEvents.ModifyEntries { entries ->
+            entries.accept(EVENT_DEVICE)
+        })
     }
 
     private fun registerBlock(name: String, block: Block) {

@@ -11,9 +11,13 @@ class JumpOutOfWaterGoal(
     private val entity: PokemonEntity,
     private val jumpChance: Float = RandomUtils.Probability.LOW.chance
 ) : Goal() {
-    private var cooldown = 600 + (entity as LivingEntity).level().random.nextInt(200) // 30-40 seconds initial
+    private var cooldown = 100 + (entity as LivingEntity).level().random.nextInt(20) // ~5 seconds initial
     private var state = 0 // 0: idle, 1: swimming to surface
     private var timeoutTicks = 0
+
+    init {
+        this.flags = java.util.EnumSet.of(net.minecraft.world.entity.ai.goal.Goal.Flag.MOVE, net.minecraft.world.entity.ai.goal.Goal.Flag.LOOK, net.minecraft.world.entity.ai.goal.Goal.Flag.JUMP)
+    }
 
     override fun canUse(): Boolean {
         if (cooldown > 0) {
@@ -24,9 +28,13 @@ class JumpOutOfWaterGoal(
         val le = entity as LivingEntity
         val isInWater = le.isInWater
         
-        // Reset cooldown ngay lập tức để mỗi 30-40s chỉ có 1 cơ hội "đổ xúc xắc" nhảy.
-        // Điều này giúp trong một hồ có nhiều cá, mỗi chu kỳ 30-40s chỉ có "vài con" ngẫu nhiên trúng tỷ lệ (jumpChance) và bật lên.
-        cooldown = 600 + le.level().random.nextInt(200)
+        // Check mỗi 5s
+        cooldown = 100 + le.level().random.nextInt(20)
+
+        if (!isInWater) return false
+        
+        // Tỉ lệ 20% nhẩy cho bất kì con cá nào
+        if (le.level().random.nextFloat() >= 0.20f) return false
 
         if (!isInWater) return false
         
@@ -62,62 +70,72 @@ class JumpOutOfWaterGoal(
         if (state != 1) return
         val le = entity as LivingEntity
         val level = le.level()
-        val pos = le.blockPosition()
         
-        // Tìm block mặt nước thực tế
-        var surfaceBlockPos = pos
-        var current = pos
-        while (level.getFluidState(current).`is`(net.minecraft.tags.FluidTags.WATER) && current.y < level.maxBuildHeight) {
-            surfaceBlockPos = current
-            current = current.above()
-        }
-        
-        val headY = le.y + le.eyeHeight
-        
-        // Nếu đầu cá đã chạm hoặc vượt qua block nước trên cùng
-        if (headY >= surfaceBlockPos.y) {
+        // Nếu cá đã vọt hẳn ra khỏi nước (không còn bị lực cản của nước)
+        if (!le.isInWater) {
             // Tính toán vận tốc nhảy
             val attack = le.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
             val sizeWeight = le.bbWidth * le.bbHeight
             val statFactor = attack / Math.max(sizeWeight.toDouble(), 0.1)
             
-            // Chuyển đổi statFactor thành lực nhảy cộng thêm (giới hạn tối đa 0.3 cho cá có attack rất khủng)
             val statBonus = Math.min(0.3, statFactor * 0.005)
-            // Hệ số ngẫu nhiên từ 0.0 đến 0.2
             val randomBonus = Math.random() * 0.2 
             
-            // Trong Minecraft, deltaMovement.y = 1.0 sẽ tạo ra cú nhảy cao ~6 block (do gia tốc trọng trường)
-            // Lực cơ bản = 0.7 (~3.5 block)
-            // Max bình thường = 0.7 + 0.1 (stat tb) + 0.2 (random) = 1.0 (~6 block)
-            // Max đột biến (attack siêu cao) = 0.7 + 0.3 + 0.2 = 1.2 (~8.5 block)
             val jumpPower = 0.7 + statBonus + randomBonus
             
-            // Chỉ nhảy vọt thẳng đứng lên (Splash), vì Magikarp bơi rất yếu nên không nhảy về phía trước
+            // Lực búng lúc này hoàn toàn không bị nước cản lại!
             le.deltaMovement = net.minecraft.world.phys.Vec3(le.deltaMovement.x * 0.1, jumpPower, le.deltaMovement.z * 0.1)
             le.hasImpulse = true
             
-            // Phát particles tại vị trí hiện tại
             if (level is net.minecraft.server.level.ServerLevel) {
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.SPLASH, le.x, le.y, le.z, 30, 0.5, 0.5, 0.5, 0.2)
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE_POP, le.x, le.y, le.z, 15, 0.5, 0.5, 0.5, 0.1)
             }
             
             state = 2
-            cooldown = 600 + level.random.nextInt(200) // Reset cooldown 30-40 seconds
+            timeoutTicks = 0
+            cooldown = 100 + level.random.nextInt(20)
         } else {
-            // Bơi thẳng đứng lên
-            le.deltaMovement = net.minecraft.world.phys.Vec3(le.deltaMovement.x * 0.5, 0.25, le.deltaMovement.z * 0.5)
+            // Vẫn đang trong nước, tìm mặt nước để bơi lên
+            var current = le.blockPosition()
+            var surfaceBlockPos = current
+            while (level.getFluidState(current).`is`(net.minecraft.tags.FluidTags.WATER) && current.y < level.maxBuildHeight) {
+                surfaceBlockPos = current
+                current = current.above()
+            }
+
+            // Ép bơi lố qua mặt nước 1.5 block để chắc chắn toàn bộ thân cá thoát khỏi nước
+            val mob = le as net.minecraft.world.entity.Mob
+            mob.moveControl.setWantedPosition(
+                le.x,
+                surfaceBlockPos.y.toDouble() + 1.5,
+                le.z,
+                1.0
+            )
+            
             timeoutTicks++
-            // Thời gian chờ dự phòng (failsafe) 30 giây phòng trường hợp bị kẹt bởi entity khác hoặc dòng chảy phức tạp
+            // Thời gian chờ dự phòng (failsafe)
             if (timeoutTicks > 600) { 
                 state = 2
-                cooldown = 600 + level.random.nextInt(200)
+                timeoutTicks = 0
+                cooldown = 100 + level.random.nextInt(20)
             }
         }
     }
 
     override fun canContinueToUse(): Boolean {
-        return state == 1 && (entity as LivingEntity).isInWater
+        val le = entity as LivingEntity
+        if (state == 1) return true // Tiếp tục duy trì để tick() xử lý thời khắc thoát khỏi nước
+
+        if (state == 2) {
+            timeoutTicks++
+            // Đợi ít nhất 10 tick cho cá văng lên không trung. Sau đó nếu chạm nước hoặc chạm đất thì ngưng.
+            if (timeoutTicks > 10 && le.isInWater) return false
+            if (timeoutTicks > 10 && le.onGround()) return false
+            // Duy trì trạng thái bay lượn cho đến khi chạm nước hoặc đất
+            return true
+        }
+        return false
     }
 }
 

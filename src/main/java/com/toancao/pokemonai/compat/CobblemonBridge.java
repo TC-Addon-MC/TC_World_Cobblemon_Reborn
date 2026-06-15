@@ -82,4 +82,49 @@ public class CobblemonBridge {
     public static void addTag(PokemonEntity entity, String tag) {
         entity.addTag(tag);
     }
+    public static int getId(PokemonEntity entity) {
+        return entity.getId();
+    }
+    public static void stopNavigation(PokemonEntity entity) {
+        entity.getNavigation().stop();
+    }
+    public static void setEvolutionStarted(PokemonEntity entity, boolean started) {
+        try {
+            java.lang.reflect.Field field = PokemonEntity.class.getDeclaredField("EVOLUTION_STARTED");
+            field.setAccessible(true);
+            net.minecraft.network.syncher.EntityDataAccessor<Boolean> accessor = (net.minecraft.network.syncher.EntityDataAccessor<Boolean>) field.get(null);
+            entity.getEntityData().set(accessor, started);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field field = PokemonEntity.class.getDeclaredField("Companion");
+                field.setAccessible(true);
+                Object companion = field.get(null);
+                java.lang.reflect.Method method = companion.getClass().getDeclaredMethod("getEVOLUTION_STARTED");
+                method.setAccessible(true);
+                net.minecraft.network.syncher.EntityDataAccessor<Boolean> accessor = (net.minecraft.network.syncher.EntityDataAccessor<Boolean>) method.invoke(companion);
+                entity.getEntityData().set(accessor, started);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    public static void sendPosableAnimationPacket(int entityId, String animationName, double x, double y, double z, net.minecraft.world.level.Level level) {
+        new com.cobblemon.mod.common.net.messages.client.animation.PlayPosableAnimationPacket(
+            entityId,
+            java.util.Collections.singleton(animationName),
+            java.util.Collections.emptyList()
+        ).sendToPlayersAround(x, y, z, 128.0, level.dimension(), new kotlin.jvm.functions.Function1<net.minecraft.server.level.ServerPlayer, Boolean>() {
+            @Override
+            public Boolean invoke(net.minecraft.server.level.ServerPlayer player) {
+                return false;
+            }
+        });
+    }
+    public static void playEvolutionSound(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos, float volume, float pitch) {
+        net.minecraft.resources.ResourceLocation soundId = net.minecraft.resources.ResourceLocation.tryParse("cobblemon:evolution.full");
+        net.minecraft.sounds.SoundEvent sound = net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.get(soundId);
+        if (sound != null) {
+            level.playSound(null, pos, sound, net.minecraft.sounds.SoundSource.NEUTRAL, volume, pitch);
+        }
+    }
 }

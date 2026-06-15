@@ -14,6 +14,12 @@
 				"adapter": "kotlin",
 				"value": "com.toancao.pokemonai.PokemonAIMod"
 			}
+		],
+		"client": [
+			{
+				"adapter": "kotlin",
+				"value": "com.toancao.pokemonai.PokemonAIClient"
+			}
 		]
 	},
 	"mixins": [

@@ -21,11 +21,46 @@ object PokemonAIMod : ModInitializer {
         PokemonAttachments.register()
 
         // Register event handlers & commands
+        com.toancao.pokemonai.network.EventNetwork.registerPayloads()
         com.toancao.pokemonai.registry.BlockRegistry.register()
         EmotionEventHandler.register()
         EvolutionManager.register()
         com.toancao.pokemonai.utils.DebugCommands.register()
         com.toancao.pokemonai.events.DragonGateEvent.register()
+        
+        com.toancao.pokemonai.events.NoticeEventManager.registerProvider { level ->
+            val phaseName = com.toancao.pokemonai.events.DragonGateEvent.currentPhase.name
+            
+            val dayTime = level.dayTime
+            val currentDay = dayTime / 24000
+            val timeOfDay = dayTime % 24000
+            
+            var nextDay = currentDay
+            if (timeOfDay >= 1000 || nextDay == 0L || nextDay % 30 != 0L) {
+                val remainder = nextDay % 30
+                nextDay += (30 - remainder)
+            }
+            
+            val nextEventTick = (nextDay * 24000) + 1000
+            val ticksRemaining = nextEventTick - dayTime
+            
+            val isIdle = com.toancao.pokemonai.events.DragonGateEvent.currentPhase == com.toancao.pokemonai.events.DragonGateEvent.EventPhase.IDLE
+            
+            val statusDesc = if (isIdle) {
+                "Sự kiện Long Môn chưa diễn ra.\nHãy chờ đến ngày tiếp theo\nvào lúc 7 giờ sáng."
+            } else {
+                "Sự kiện Long Môn đang diễn ra!\n(Phase: $phaseName)\nHãy nhanh chân đến Cổng Rồng!"
+            }
+            
+            listOf(
+                com.toancao.pokemonai.events.NoticeEventManager.NoticeEvent(
+                    title = "Sự Kiện Long Môn",
+                    subtitle = if (isIdle) "Bắt đầu sau:" else "Kết thúc Phase sau:",
+                    desc = statusDesc,
+                    remainingTicks = if (isIdle) ticksRemaining else com.toancao.pokemonai.events.DragonGateEvent.phaseTicks.toLong()
+                )
+            )
+        }
 
         // Register Magikarp Configs
         BehaviorRegistry.register(MagikarpConfig.species, MagikarpConfig.behaviors)
@@ -34,11 +69,7 @@ object PokemonAIMod : ModInitializer {
             MagikarpRageRule()
         ))
 
-        // Register Gyarados for the event goals
-        BehaviorRegistry.register("gyarados", listOf(
-            com.toancao.pokemonai.registry.BehaviorRegistry.Entry(6, { entity -> com.toancao.pokemonai.behaviors.water.DragonGateFreeSwimGoal(entity) }),
-            com.toancao.pokemonai.registry.BehaviorRegistry.Entry(7, { entity -> com.toancao.pokemonai.behaviors.water.DragonGateJumpBackGoal(entity) })
-        ))
+
         
         logger.info("Pokemon AI Addon Initialized successfully.")
     }

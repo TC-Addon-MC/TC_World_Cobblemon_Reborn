@@ -1,17 +1,18 @@
 package com.toancao.pokemonai.events;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Entity;
-import com.toancao.pokemonai.compat.CobblemonBridge;
-import com.toancao.pokemonai.utils.DebugUtils;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import com.toancao.pokemonai.blocks.entity.DragonGateBottomBlockEntity;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.toancao.pokemonai.blocks.entity.DragonGateBottomBlockEntity;
+import com.toancao.pokemonai.compat.CobblemonBridge;
+import com.toancao.pokemonai.utils.DebugUtils;
+
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DragonGateEvent {
     public enum EventPhase {
@@ -76,20 +77,7 @@ public class DragonGateEvent {
                     phaseTicks = 0;
                     broadcast(level, "[Sự Kiện Long Môn] Sự kiện kết thúc. Hẹn gặp lại kỳ sau!");
                     
-                    // Xoá toàn bộ tag cho mọi thực thể để an toàn
-                    for (Entity entity : level.getAllEntities()) {
-                        if (entity instanceof LivingEntity) {
-                            java.util.List<String> toRemove = new java.util.ArrayList<>();
-                            for (String tag : entity.getTags()) {
-                                if (tag.startsWith("start_") || tag.startsWith("target_") || tag.equals("gyarados_resting") || tag.equals("dragon_gate_challenger") || tag.equals("waiting_for_evolution")) {
-                                    toRemove.add(tag);
-                                }
-                            }
-                            for (String tag : toRemove) {
-                                entity.removeTag(tag);
-                            }
-                        }
-                    }
+                    clearEventTags(level);
                 }
             }
         }
@@ -165,7 +153,27 @@ public class DragonGateEvent {
     public static void stop(ServerLevel level) {
         currentPhase = EventPhase.IDLE;
         phaseTicks = 0;
+        clearEventTags(level);
         DebugUtils.INSTANCE.logEvent("DragonGateEvent force stopped!");
+    }
+
+    public static void clearEventTags(ServerLevel level) {
+        for (Entity entity : level.getAllEntities()) {
+            if (entity instanceof LivingEntity) {
+                java.util.List<String> toRemove = new java.util.ArrayList<>();
+                for (String tag : entity.getTags()) {
+                    if (tag.startsWith("start_") || tag.startsWith("target_") || 
+                        tag.equals("gyarados_resting") || tag.equals("dragon_gate_challenger") || 
+                        tag.equals("waiting_for_evolution") || tag.equals("evolution_eligible") || 
+                        tag.equals("dragon_gate_free_swim")) {
+                        toRemove.add(tag);
+                    }
+                }
+                for (String tag : toRemove) {
+                    entity.removeTag(tag);
+                }
+            }
+        }
     }
 
     private static void broadcast(ServerLevel level, String msg) {
