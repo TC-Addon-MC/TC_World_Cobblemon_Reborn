@@ -18,9 +18,7 @@ public class DragonGateEvent {
     public enum EventPhase {
         IDLE,
         SWIMMING,  // 7h morning -> Midnight (1000 -> 18000 ticks)
-        EVOLVING,  // 30 seconds (600 ticks)
-        FREE_SWIM, // 1 minute (1200 ticks)
-        JUMPING    // Short trigger phase
+        EVOLVING   // 30 seconds (600 ticks)
     }
 
     public static EventPhase currentPhase = EventPhase.IDLE;
@@ -44,8 +42,10 @@ public class DragonGateEvent {
         long currentDay = dayTime / 24000;
         long timeOfDay = dayTime % 24000;
         
+        int interval = com.toancao.pokemonai.config.MagikarpConfigManager.INSTANCE.getConfig().getEventIntervalMultiplier() * 10;
+        
         // Kích hoạt lúc 7h sáng các ngày 30, 60, 90...
-        if (currentPhase == EventPhase.IDLE && currentDay > 0 && currentDay % 30 == 0 && timeOfDay == 1000) {
+        if (currentPhase == EventPhase.IDLE && currentDay > 0 && currentDay % interval == 0 && timeOfDay == 1000) {
             trigger(level);
         }
 
@@ -56,22 +56,10 @@ public class DragonGateEvent {
                 // Trăng lên đỉnh lúc nửa đêm (18000 ticks) - 17000 ticks after 1000
                 if (phaseTicks <= 0 || timeOfDay >= 18000 && timeOfDay < 18100) {
                     currentPhase = EventPhase.EVOLVING;
-                    phaseTicks = 600; // 30s
+                    phaseTicks = com.toancao.pokemonai.config.MagikarpConfigManager.INSTANCE.getConfig().getEvolvingPhaseDurationTicks();
                     broadcast(level, "[Sự Kiện Long Môn] Trăng đã lên đỉnh! Bắt đầu nghi thức tiến hóa cho các cá chép trên đỉnh thác!");
                 }
             } else if (currentPhase == EventPhase.EVOLVING) {
-                if (phaseTicks <= 0) {
-                    currentPhase = EventPhase.FREE_SWIM;
-                    phaseTicks = 1200; // 1 min
-                    broadcast(level, "[Sự Kiện Long Môn] Nghi thức tiến hóa hoàn tất! Các rồng đang bơi lượn tự do.");
-                }
-            } else if (currentPhase == EventPhase.FREE_SWIM) {
-                if (phaseTicks <= 0) {
-                    currentPhase = EventPhase.JUMPING;
-                    phaseTicks = 100;
-                    broadcast(level, "[Sự Kiện Long Môn] Các Gyarados chuẩn bị phóng khỏi mặt nước để trở về!");
-                }
-            } else if (currentPhase == EventPhase.JUMPING) {
                 if (phaseTicks <= 0) {
                     currentPhase = EventPhase.IDLE;
                     phaseTicks = 0;
@@ -85,7 +73,7 @@ public class DragonGateEvent {
 
     public static void trigger(ServerLevel level) {
         currentPhase = EventPhase.SWIMMING;
-        phaseTicks = 17000; // Từ 7h sáng tới 24h đêm
+        phaseTicks = com.toancao.pokemonai.config.MagikarpConfigManager.INSTANCE.getConfig().getSwimmingPhaseDurationTicks();
         
         DebugUtils.INSTANCE.logEvent("DragonGateEvent started! Scanning existing Magikarps.");
         broadcast(level, "[Sự Kiện Long Môn] Bắt đầu! Đàn cá hoang dã đang cảm nhận tiếng gọi và bơi về chân thác.");

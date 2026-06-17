@@ -20,4 +20,8 @@ class EventDeviceItem(properties: Properties) : Item(properties) {
         
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide())
     }
+
+    override fun isFoil(stack: ItemStack): Boolean {
+        return true
+    }
 }

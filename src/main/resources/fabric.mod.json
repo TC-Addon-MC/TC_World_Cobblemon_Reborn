@@ -1,12 +1,15 @@
 {
 	"schemaVersion": 1,
-	"id": "tc_cobblemon_world_reborn",
+	"id": "tc_reborn",
 	"version": "1.0.0",
 	"name": "TC Cobblemon World Reborn",
 	"description": "A structure spawning mod for Cobblemon.",
-	"authors": ["Toan Cao"],
+	"authors": [
+		"Toan Cao"
+	],
 	"contact": {},
 	"license": "MIT",
+	"icon": "icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [

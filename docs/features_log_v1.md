@@ -16,3 +16,7 @@ Danh sách các tính năng đặc biệt của các loài Pokemon AI trong quá
 - **Hệ thống Thông báo Sự kiện (Event Notice API)**:
   - Cung cấp một API công khai `NoticeEventManager` cho phép bất kỳ mod nào khác (hoặc addon khác) tích hợp sự kiện của họ vào màn hình Event Notice một cách dễ dàng.
   - Sự kiện Vượt Long Môn (`DragonGateEvent`) đã được đăng ký vào hệ thống này, tự động đồng bộ thời gian chuẩn xác giữa Client và Server, đếm ngược ticks cho từng Phase, và hiển thị chi tiết trạng thái lên menu `Event Device`.
+- **Event Device (Thiết bị Sự kiện)**:
+  - Một vật phẩm mới (`tc_reborn:event_device`) được sử dụng để mở giao diện (GUI) Event Notice, cho phép người chơi theo dõi thời gian và trạng thái của các sự kiện đặc biệt.
+  - Có thể chế tạo bằng: Moon Stone (giữa), 2 Magnet (2 bên), Clock (trên cùng), bao quanh bởi Red Apricorn.
+  - Được thêm vào Creative Tab riêng của mod là "TC Reborn".

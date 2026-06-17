@@ -1,0 +1,15 @@
+{
+  "item.tc_reborn.event_device": "活动设备",
+  "gui.tc_reborn.event.list": "活动列表",
+  "gui.tc_reborn.event.details": "活动详情",
+  "gui.tc_reborn.event.image_placeholder": "图片占位符",
+  "gui.tc_reborn.event.hours": "小时",
+  "gui.tc_reborn.event.minutes": "分钟",
+  "gui.tc_reborn.event.seconds": "秒",
+  "gui.tc_reborn.event.no_events": "暂无活动",
+  "event.tc_reborn.dragon_gate.title": "龙门活动",
+  "event.tc_reborn.dragon_gate.subtitle_idle": "开始倒计时：",
+  "event.tc_reborn.dragon_gate.subtitle_active": "阶段结束倒计时：",
+  "event.tc_reborn.dragon_gate.idle_desc": "龙门活动尚未开始。\n请等到次日\n早上 7:00。",
+  "event.tc_reborn.dragon_gate.active_desc": "龙门活动进行中！\n(阶段: %s)\n快前往龙门！"
+}

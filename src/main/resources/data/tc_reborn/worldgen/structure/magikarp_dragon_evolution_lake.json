@@ -4,7 +4,7 @@
   "step": "surface_structures",
   "spawn_overrides": {},
   "terrain_adaptation": "beard_thin",
-  "start_pool": "tcpoke_reborn:magikarp_dragon_evolution_lake",
+  "start_pool": "tc_reborn:magikarp_dragon_evolution_lake",
   "size": 1,
   "start_height": {
     "type": "minecraft:uniform",

@@ -7,7 +7,9 @@ object NoticeEventManager {
         val title: String,
         val subtitle: String,
         val desc: String,
-        val remainingTicks: Long
+        val remainingTicks: Long,
+        val icon: net.minecraft.resources.ResourceLocation,
+        val image: net.minecraft.resources.ResourceLocation
     )
 
     private val providers = mutableListOf<(ServerLevel) -> List<NoticeEvent>>()

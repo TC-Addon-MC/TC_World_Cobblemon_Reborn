@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ACA",
+    "MSM",
+    "AAA"
+  ],
+  "key": {
+    "A": {
+      "item": "cobblemon:red_apricorn"
+    },
+    "C": {
+      "item": "minecraft:clock"
+    },
+    "S": {
+      "item": "cobblemon:moon_stone"
+    },
+    "M": {
+      "item": "cobblemon:magnet"
+    }
+  },
+  "result": {
+    "id": "tc_reborn:event_device",
+    "count": 1
+  }
+}

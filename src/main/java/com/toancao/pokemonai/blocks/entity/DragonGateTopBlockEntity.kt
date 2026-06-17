@@ -37,7 +37,8 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
             val phase = DragonGateEvent.currentPhase
             if (phase == DragonGateEvent.EventPhase.EVOLVING) {
                 val ticksRemaining = DragonGateEvent.phaseTicks
-                val elapsed = 600 - ticksRemaining
+                val totalTicks = com.toancao.pokemonai.config.MagikarpConfigManager.config.evolvingPhaseDurationTicks
+                val elapsed = totalTicks - ticksRemaining
 
                 if (elapsed == 0) com.toancao.pokemonai.utils.ParticleUtils.createTornado(level, pos)
                 com.toancao.pokemonai.utils.ParticleUtils.updateTornado(level, pos, elapsed)
@@ -49,7 +50,8 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                 if (stepIndex != -1) {
                     val evolveAmount = 1 shl stepIndex // 1, 2, 4, 8, 16...
 
-                    val magikarps = findWaitingMagikarps(level, pos, 40.0)
+                    val radius = com.toancao.pokemonai.config.MagikarpConfigManager.config.maxMagikarpEvolutionRadius
+                    val magikarps = findWaitingMagikarps(level, pos, radius)
                     var evolved = 0
                     for (mk in magikarps) {
                         if (evolved >= evolveAmount) break
@@ -60,31 +62,10 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
 
                 // Force evolve all remaining at the very end (last 5 ticks)
                 if (ticksRemaining == 5) {
-                    val magikarps = findWaitingMagikarps(level, pos, 40.0)
+                    val radius = com.toancao.pokemonai.config.MagikarpConfigManager.config.maxMagikarpEvolutionRadius
+                    val magikarps = findWaitingMagikarps(level, pos, radius)
                     for (mk in magikarps) {
                         evolveMagikarp(level, mk)
-                    }
-                }
-            } else if (phase == DragonGateEvent.EventPhase.FREE_SWIM) {
-                // If the phase transitioned and we still have waiting magikarps (maybe they were out of R=10)
-                // We should remove their waiting tag if they didn't evolve.
-                if (DragonGateEvent.phaseTicks == 1199) { // Just at the start of FREE_SWIM
-                    val bounds = AABB(pos).inflate(40.0)
-                    val allMks = level.getEntitiesOfClass(LivingEntity::class.java, bounds) { e ->
-                        com.toancao.pokemonai.compat.CobblemonBridge.checkIsPokemonEntity(e) && e.tags.contains("waiting_for_evolution")
-                    }
-                    for (mk in allMks) {
-                        mk.removeTag("waiting_for_evolution")
-                        mk.removeTag("evolution_eligible")
-                        mk.removeTag("dragon_gate_challenger") // Revoke their right to evolve
-                        mk.addTag("dragon_gate_free_swim")
-                    }
-                    
-                    val gyaradosList = level.getEntitiesOfClass(LivingEntity::class.java, bounds) { e ->
-                        com.toancao.pokemonai.compat.CobblemonBridge.checkIsPokemonEntity(e) && e.tags.contains("gyarados_resting")
-                    }
-                    for (gy in gyaradosList) {
-                        gy.removeTag("gyarados_resting")
                     }
                 }
             }
@@ -103,9 +84,12 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
             val pokemonEntity = com.toancao.pokemonai.compat.CobblemonBridge.castToPokemonEntity(entity)
             val pokemonData = com.toancao.pokemonai.compat.CobblemonBridge.getPokemonData(pokemonEntity)
             
-            if (pokemonData.level >= 20) {
+            val requiredLevel = com.toancao.pokemonai.config.MagikarpConfigManager.config.requiredLevelForEvolution
+            if (pokemonData.level >= requiredLevel) {
                 // Nhảy lên cao (vận tốc ~1.2 đến 1.5 sẽ bay lên khoảng 4-6 block)
-                val jumpVel = 1.2 + level.random.nextDouble() * 0.4
+                val baseVel = com.toancao.pokemonai.config.MagikarpConfigManager.config.jumpVelocityMin
+                val maxOffset = com.toancao.pokemonai.config.MagikarpConfigManager.config.jumpVelocityMaxOffset
+                val jumpVel = baseVel + level.random.nextDouble() * maxOffset
                 entity.deltaMovement = entity.deltaMovement.add(0.0, jumpVel, 0.0)
                 entity.hasImpulse = true
                 entity.hurtMarked = true

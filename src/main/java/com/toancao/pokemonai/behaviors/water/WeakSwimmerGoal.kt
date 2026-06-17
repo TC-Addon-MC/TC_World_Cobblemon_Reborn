@@ -9,7 +9,9 @@ import net.minecraft.world.phys.Vec3
 class WeakSwimmerGoal(private val entity: PokemonEntity) : Goal() {
     override fun canUse(): Boolean {
         val livingEntity = entity as LivingEntity
-        return livingEntity.isInWater
+        if (!livingEntity.isInWater) return false
+        val species = com.toancao.pokemonai.compat.CobblemonBridge.getSpeciesName(entity)
+        return species == "magikarp"
     }
 
     override fun canContinueToUse(): Boolean {

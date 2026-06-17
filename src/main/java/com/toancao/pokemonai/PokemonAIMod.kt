@@ -17,6 +17,9 @@ object PokemonAIMod : ModInitializer {
     override fun onInitialize() {
         logger.info("Initializing Pokemon AI Addon...")
 
+        // Load configs
+        com.toancao.pokemonai.config.MagikarpConfigManager.loadConfig()
+
         // Register attachments
         PokemonAttachments.register()
 
@@ -35,10 +38,12 @@ object PokemonAIMod : ModInitializer {
             val currentDay = dayTime / 24000
             val timeOfDay = dayTime % 24000
             
+            val interval = com.toancao.pokemonai.config.MagikarpConfigManager.config.eventIntervalMultiplier * 10
+            
             var nextDay = currentDay
-            if (timeOfDay >= 1000 || nextDay == 0L || nextDay % 30 != 0L) {
-                val remainder = nextDay % 30
-                nextDay += (30 - remainder)
+            if (timeOfDay >= 1000 || nextDay == 0L || nextDay % interval != 0L) {
+                val remainder = nextDay % interval
+                nextDay += (interval - remainder)
             }
             
             val nextEventTick = (nextDay * 24000) + 1000
@@ -47,17 +52,19 @@ object PokemonAIMod : ModInitializer {
             val isIdle = com.toancao.pokemonai.events.DragonGateEvent.currentPhase == com.toancao.pokemonai.events.DragonGateEvent.EventPhase.IDLE
             
             val statusDesc = if (isIdle) {
-                "Sự kiện Long Môn chưa diễn ra.\nHãy chờ đến ngày tiếp theo\nvào lúc 7 giờ sáng."
+                "event.tc_reborn.dragon_gate.idle_desc"
             } else {
-                "Sự kiện Long Môn đang diễn ra!\n(Phase: $phaseName)\nHãy nhanh chân đến Cổng Rồng!"
+                "event.tc_reborn.dragon_gate.active_desc|$phaseName"
             }
             
             listOf(
                 com.toancao.pokemonai.events.NoticeEventManager.NoticeEvent(
-                    title = "Sự Kiện Long Môn",
-                    subtitle = if (isIdle) "Bắt đầu sau:" else "Kết thúc Phase sau:",
+                    title = "event.tc_reborn.dragon_gate.title",
+                    subtitle = if (isIdle) "event.tc_reborn.dragon_gate.subtitle_idle" else "event.tc_reborn.dragon_gate.subtitle_active",
                     desc = statusDesc,
-                    remainingTicks = if (isIdle) ticksRemaining else com.toancao.pokemonai.events.DragonGateEvent.phaseTicks.toLong()
+                    remainingTicks = if (isIdle) ticksRemaining else com.toancao.pokemonai.events.DragonGateEvent.phaseTicks.toLong(),
+                    icon = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tc_reborn", "textures/gui/magikarp_icon.png"),
+                    image = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tc_reborn", "textures/gui/dragon_island.png")
                 )
             )
         }

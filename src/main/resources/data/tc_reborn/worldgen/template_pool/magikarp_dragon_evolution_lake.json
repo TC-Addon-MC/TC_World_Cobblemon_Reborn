@@ -1,12 +1,12 @@
 {
-  "name": "tcpoke_reborn:magikarp_dragon_evolution_lake",
+  "name": "tc_reborn:magikarp_dragon_evolution_lake",
   "fallback": "minecraft:empty",
   "elements": [
     {
       "weight": 1,
       "element": {
         "element_type": "minecraft:single_pool_element",
-        "location": "tcpoke_reborn:magikarp_dragon_evolution_lake",
+        "location": "tc_reborn:magikarp_dragon_evolution_lake",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }

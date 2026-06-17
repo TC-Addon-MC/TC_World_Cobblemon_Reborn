@@ -15,7 +15,7 @@ import org.joml.Vector3f
 import org.slf4j.LoggerFactory
 
 object DebugUtils {
-    var enabled = true
+    var enabled = false
     private val logger = LoggerFactory.getLogger("PokemonAI-Debug")
 
     fun logEmotion(entity: Entity, pokemon: PokemonEntity) {

@@ -12,7 +12,7 @@ import com.toancao.pokemonai.events.NoticeEventManager
 
 data class SyncEventDataPacket(val events: List<NoticeEventManager.NoticeEvent>) : CustomPacketPayload {
     companion object {
-        val ID = CustomPacketPayload.Type<SyncEventDataPacket>(ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "sync_event_data"))
+        val ID = CustomPacketPayload.Type<SyncEventDataPacket>(ResourceLocation.fromNamespaceAndPath("tc_reborn", "sync_event_data"))
         
         val CODEC: StreamCodec<FriendlyByteBuf, SyncEventDataPacket> = CustomPacketPayload.codec(
             { payload: SyncEventDataPacket, buf: FriendlyByteBuf ->
@@ -22,6 +22,8 @@ data class SyncEventDataPacket(val events: List<NoticeEventManager.NoticeEvent>)
                     buf.writeUtf(event.subtitle)
                     buf.writeUtf(event.desc)
                     buf.writeLong(event.remainingTicks)
+                    buf.writeResourceLocation(event.icon)
+                    buf.writeResourceLocation(event.image)
                 }
             },
             { buf: FriendlyByteBuf ->
@@ -33,7 +35,9 @@ data class SyncEventDataPacket(val events: List<NoticeEventManager.NoticeEvent>)
                             buf.readUtf(),
                             buf.readUtf(),
                             buf.readUtf(),
-                            buf.readLong()
+                            buf.readLong(),
+                            buf.readResourceLocation(),
+                            buf.readResourceLocation()
                         )
                     )
                 }

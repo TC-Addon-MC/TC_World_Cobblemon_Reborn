@@ -49,6 +49,8 @@ class DragonGateChallengeGoal(private val pokemonEntity: PokemonEntity) : Goal()
 
     override fun canUse(): Boolean {
         if (!entity.tags.contains("dragon_gate_challenger")) return false
+        val species = com.toancao.pokemonai.compat.CobblemonBridge.getSpeciesName(pokemonEntity)
+        if (species != "magikarp") return false
         targetPos = resolveTarget(entity) ?: return false
         return true
     }

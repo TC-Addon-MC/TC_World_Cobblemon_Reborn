@@ -58,7 +58,9 @@ class JumpOutOfWaterGoal(
 
         // Bỏ qua RandomUtils.chance vì cooldown (30-40s) đã đóng vai trò làm giãn cách thời gian nhảy rồi.
         // Khi hết cooldown, cá chắc chắn sẽ nhảy (nếu không bị cản).
-        return com.toancao.pokemonai.utils.AIFilter.isEligible(entity)
+        if (!com.toancao.pokemonai.utils.AIFilter.isEligible(entity)) return false
+        val species = com.toancao.pokemonai.compat.CobblemonBridge.getSpeciesName(entity)
+        return species == "magikarp"
     }
 
     override fun start() {

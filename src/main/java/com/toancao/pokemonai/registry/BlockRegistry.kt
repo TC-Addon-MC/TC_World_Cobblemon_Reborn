@@ -14,8 +14,10 @@ import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
-import net.minecraft.world.item.CreativeModeTabs
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup
+import net.minecraft.network.chat.Component
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.CreativeModeTab
 
 object BlockRegistry {
     val DRAGON_GATE_BOTTOM_BLOCK = DragonGateBottomBlock()
@@ -23,6 +25,18 @@ object BlockRegistry {
     val DRAGON_GATE_TOP_BLOCK = DragonGateTopBlock()
     val TC_TOP_BOTTOM_BLOCK = TcTopBottomBlock()
     val EVENT_DEVICE = com.toancao.pokemonai.items.EventDeviceItem(net.minecraft.world.item.Item.Properties().stacksTo(1))
+
+    val TC_REBORN_TAB: CreativeModeTab = FabricItemGroup.builder()
+        .icon { ItemStack(EVENT_DEVICE) }
+        .title(Component.literal("TC Reborn"))
+        .displayItems { _, entries ->
+            entries.accept(EVENT_DEVICE)
+            entries.accept(DRAGON_GATE_BOTTOM_BLOCK)
+            entries.accept(DRAGON_GATE_WAYPOINT_BLOCK)
+            entries.accept(DRAGON_GATE_TOP_BLOCK)
+            entries.accept(TC_TOP_BOTTOM_BLOCK)
+        }
+        .build()
 
     val DRAGON_GATE_BOTTOM_BLOCK_ENTITY: BlockEntityType<DragonGateBottomBlockEntity> = BlockEntityType.Builder.of(
         ::DragonGateBottomBlockEntity, DRAGON_GATE_BOTTOM_BLOCK
@@ -48,41 +62,43 @@ object BlockRegistry {
 
         Registry.register(
             BuiltInRegistries.ITEM,
-            ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "event_device"),
+            ResourceLocation.fromNamespaceAndPath("tc_reborn", "event_device"),
             EVENT_DEVICE
         )
 
         Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
-            ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "dragon_gate_bottom_entity"),
+            ResourceLocation.fromNamespaceAndPath("tc_reborn", "dragon_gate_bottom_entity"),
             DRAGON_GATE_BOTTOM_BLOCK_ENTITY
         )
         
         Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
-            ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "dragon_gate_waypoint_entity"),
+            ResourceLocation.fromNamespaceAndPath("tc_reborn", "dragon_gate_waypoint_entity"),
             DRAGON_GATE_WAYPOINT_BLOCK_ENTITY
         )
 
         Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
-            ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "dragon_gate_top_entity"),
+            ResourceLocation.fromNamespaceAndPath("tc_reborn", "dragon_gate_top_entity"),
             DRAGON_GATE_TOP_BLOCK_ENTITY
         )
 
         Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
-            ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", "tc_top_bottom_entity"),
+            ResourceLocation.fromNamespaceAndPath("tc_reborn", "tc_top_bottom_entity"),
             TC_TOP_BOTTOM_BLOCK_ENTITY
         )
 
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(ItemGroupEvents.ModifyEntries { entries ->
-            entries.accept(EVENT_DEVICE)
-        })
+        Registry.register(
+            BuiltInRegistries.CREATIVE_MODE_TAB,
+            ResourceLocation.fromNamespaceAndPath("tc_reborn", "tc_reborn"),
+            TC_REBORN_TAB
+        )
     }
 
     private fun registerBlock(name: String, block: Block) {
-        val id = ResourceLocation.fromNamespaceAndPath("tcpoke_reborn", name)
+        val id = ResourceLocation.fromNamespaceAndPath("tc_reborn", name)
         Registry.register(BuiltInRegistries.BLOCK, id, block)
         
         val blockItem = if (block is DragonGateTopBlock) {

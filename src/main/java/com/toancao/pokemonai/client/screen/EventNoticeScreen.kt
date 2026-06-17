@@ -65,8 +65,8 @@ class EventNoticeScreen(initialEvents: List<NoticeEventManager.NoticeEvent>) : S
         
         val font = Minecraft.getInstance().font
         
-        guiGraphics.drawString(font, "Event List", x + 26, y + 14, 0xFFFFFF, true)
-        guiGraphics.drawString(font, "Event Details", x + 180, y + 14, 0xFFFFFF, true)
+        guiGraphics.drawString(font, net.minecraft.client.resources.language.I18n.get("gui.tc_reborn.event.list"), x + 26, y + 14, 0xFFFFFF, true)
+        guiGraphics.drawString(font, net.minecraft.client.resources.language.I18n.get("gui.tc_reborn.event.details"), x + 180, y + 14, 0xFFFFFF, true)
         
         val listX = x + 26
         val listY = y + 28
@@ -99,16 +99,18 @@ class EventNoticeScreen(initialEvents: List<NoticeEventManager.NoticeEvent>) : S
                 guiGraphics.drawString(font, ">", listX - 8, currentY + 10, 0xFFFFFF, true)
             }
             
-            guiGraphics.fill(listX + 5, currentY + 4, listX + 25, currentY + 24, 0xFF444444.toInt())
+            com.mojang.blaze3d.systems.RenderSystem.enableBlend()
+            guiGraphics.blit(ev.icon, listX + 5, currentY + 4, 0f, 0f, 20, 20, 20, 20)
+            com.mojang.blaze3d.systems.RenderSystem.disableBlend()
             
             guiGraphics.pose().pushPose()
             guiGraphics.pose().scale(0.9f, 0.9f, 0.9f)
-            guiGraphics.drawString(font, ev.title, ((listX + 30) / 0.9f).toInt(), ((currentY + 5) / 0.9f).toInt(), 0xFFFFFF, false)
+            guiGraphics.drawString(font, net.minecraft.client.resources.language.I18n.get(ev.title), ((listX + 30) / 0.9f).toInt(), ((currentY + 5) / 0.9f).toInt(), 0xFFFFFF, false)
             guiGraphics.pose().popPose()
             
             guiGraphics.pose().pushPose()
             guiGraphics.pose().scale(0.8f, 0.8f, 0.8f)
-            val listSubtitle = "${ev.subtitle} ${formatTime(ev.remainingTicks)}"
+            val listSubtitle = "${net.minecraft.client.resources.language.I18n.get(ev.subtitle)} ${formatTime(ev.remainingTicks)}"
             guiGraphics.drawString(font, listSubtitle, ((listX + 30) / 0.8f).toInt(), ((currentY + 16) / 0.8f).toInt(), 0xAAAAAA, false)
             guiGraphics.pose().popPose()
             
@@ -125,28 +127,48 @@ class EventNoticeScreen(initialEvents: List<NoticeEventManager.NoticeEvent>) : S
         guiGraphics.drawString(font, "<", rightX + 5, rightY + 25, 0x00FFFF, true)
         guiGraphics.drawString(font, ">", rightX + rightWidth - 10, rightY + 25, 0x00FFFF, true)
         
-        guiGraphics.pose().pushPose()
-        guiGraphics.pose().scale(0.8f, 0.8f, 0.8f)
-        guiGraphics.drawString(font, "Image Placeholder", ((rightX + 30) / 0.8f).toInt(), ((rightY + 26) / 0.8f).toInt(), 0x888888, false)
-        guiGraphics.pose().popPose()
-        
         if (mutableEvents.isNotEmpty() && selectedEventIndex in mutableEvents.indices) {
             val selectedEv = mutableEvents[selectedEventIndex]
             
+            // Render event image player
+            guiGraphics.pose().pushPose()
+            
+            val playerWidth = 136
+            val playerHeight = 56
+            val playerX = rightX + (rightWidth - playerWidth) / 2
+            val playerY = rightY + (60 - playerHeight) / 2
+            
+            com.mojang.blaze3d.systems.RenderSystem.enableBlend()
+            guiGraphics.blit(selectedEv.image, playerX, playerY, 0f, 0f, playerWidth, playerHeight, playerWidth, playerHeight)
+            com.mojang.blaze3d.systems.RenderSystem.disableBlend()
+            
+            guiGraphics.pose().popPose()
+            
             guiGraphics.pose().pushPose()
             guiGraphics.pose().scale(0.9f, 0.9f, 0.9f)
-            guiGraphics.drawString(font, selectedEv.title, ((rightX) / 0.9f).toInt(), ((rightY + 65) / 0.9f).toInt(), 0xFFFFFF, true)
+            guiGraphics.drawString(font, net.minecraft.client.resources.language.I18n.get(selectedEv.title), ((rightX) / 0.9f).toInt(), ((rightY + 65) / 0.9f).toInt(), 0xFFFFFF, true)
             guiGraphics.pose().popPose()
             
             guiGraphics.pose().pushPose()
             guiGraphics.pose().scale(0.8f, 0.8f, 0.8f)
-            val descLines = selectedEv.desc.split("\n")
+            val descParts = selectedEv.desc.split("|")
+            val translatedDesc = if (descParts.size > 1) {
+                net.minecraft.client.resources.language.I18n.get(descParts[0], *descParts.drop(1).toTypedArray())
+            } else {
+                net.minecraft.client.resources.language.I18n.get(descParts[0])
+            }
+            val descLines = translatedDesc.split("\\n", "\n")
+            var lineYOffset = 0
             for (i in descLines.indices) {
-                guiGraphics.drawString(font, descLines[i], (rightX / 0.8f).toInt(), ((rightY + 76 + i * 10) / 0.8f).toInt(), 0xAAAAAA, false)
+                val currentLine = descLines[i]
+                if (currentLine.isNotEmpty()) {
+                    guiGraphics.drawString(font, currentLine, (rightX / 0.8f).toInt(), ((rightY + 76 + lineYOffset * 10) / 0.8f).toInt(), 0xAAAAAA, false)
+                    lineYOffset++
+                }
             }
             guiGraphics.pose().popPose()
             
-            guiGraphics.drawString(font, selectedEv.subtitle, rightX, rightY + 110, 0xFFFFFF, true)
+            guiGraphics.drawString(font, net.minecraft.client.resources.language.I18n.get(selectedEv.subtitle), rightX, rightY + 110, 0xFFFFFF, true)
             
             val boxWidth = 35
             val boxHeight = 28
@@ -158,13 +180,13 @@ class EventNoticeScreen(initialEvents: List<NoticeEventManager.NoticeEvent>) : S
             val minutes = (totalSeconds % 3600) / 60
             val seconds = totalSeconds % 60
             
-            drawTimerBox(guiGraphics, font, rightX, timerY, boxWidth, boxHeight, String.format("%02d", hours), "Hours")
+            drawTimerBox(guiGraphics, font, rightX, timerY, boxWidth, boxHeight, String.format("%02d", hours), net.minecraft.client.resources.language.I18n.get("gui.tc_reborn.event.hours"))
             guiGraphics.drawString(font, ":", rightX + boxWidth + 2, timerY + 8, 0xFFFFFF, true)
-            drawTimerBox(guiGraphics, font, rightX + boxWidth + timerGap, timerY, boxWidth, boxHeight, String.format("%02d", minutes), "Minutes")
+            drawTimerBox(guiGraphics, font, rightX + boxWidth + timerGap, timerY, boxWidth, boxHeight, String.format("%02d", minutes), net.minecraft.client.resources.language.I18n.get("gui.tc_reborn.event.minutes"))
             guiGraphics.drawString(font, ":", rightX + 2 * boxWidth + timerGap + 2, timerY + 8, 0xFFFFFF, true)
-            drawTimerBox(guiGraphics, font, rightX + 2 * (boxWidth + timerGap), timerY, boxWidth, boxHeight, String.format("%02d", seconds), "Seconds")
+            drawTimerBox(guiGraphics, font, rightX + 2 * (boxWidth + timerGap), timerY, boxWidth, boxHeight, String.format("%02d", seconds), net.minecraft.client.resources.language.I18n.get("gui.tc_reborn.event.seconds"))
         } else {
-            guiGraphics.drawString(font, "No Events Available", rightX, rightY + 65, 0xAAAAAA, false)
+            guiGraphics.drawString(font, net.minecraft.client.resources.language.I18n.get("gui.tc_reborn.event.no_events"), rightX, rightY + 65, 0xAAAAAA, false)
         }
         
         guiGraphics.blit(POKEDEX_BASE, x, y, 0f, 0f, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT)

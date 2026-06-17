@@ -19,6 +19,8 @@ class SwimUpwardGoal(
         if (!(entity as LivingEntity).isInWater) return false
         // Chỉ ép bơi lên mặt nước khi tham gia sự kiện cổng rồng
         if (!entity.tags.contains("dragon_gate_challenger")) return false
+        val species = com.toancao.pokemonai.compat.CobblemonBridge.getSpeciesName(entity)
+        if (species != "magikarp") return false
         
         val pos = WaterUtils.findUpperWaterTarget(entity as Entity)
         if (pos != null) {
