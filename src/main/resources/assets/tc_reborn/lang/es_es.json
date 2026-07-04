@@ -11,5 +11,10 @@
   "event.tc_reborn.dragon_gate.subtitle_idle": "Comienza en:",
   "event.tc_reborn.dragon_gate.subtitle_active": "La fase termina en:",
   "event.tc_reborn.dragon_gate.idle_desc": "El evento Puerta del Dragón no ha comenzado.\nPor favor, espere al día siguiente\na las 7:00 AM.",
-  "event.tc_reborn.dragon_gate.active_desc": "¡El evento Puerta del Dragón está en curso!\n(Fase: %s)\n¡Date prisa a la Puerta del Dragón!"
+  "event.tc_reborn.dragon_gate.active_desc": "¡El evento Puerta del Dragón está en curso!\n(Fase: %s)\n¡Date prisa a la Puerta del Dragón!",
+  "block.tc_reborn.dragon_gate_bottom": "Fondo de la Puerta del Dragón",
+  "block.tc_reborn.dragon_gate_waypoint": "Punto de Control de la Puerta del Dragón",
+  "block.tc_reborn.dragon_gate_top": "Cima de la Puerta del Dragón",
+  "block.tc_reborn.tc_top_bottom": "Bloque de Límite",
+  "itemGroup.tc_reborn": "TC Reborn"
 }

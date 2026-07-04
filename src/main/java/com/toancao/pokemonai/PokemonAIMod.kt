@@ -30,7 +30,19 @@ object PokemonAIMod : ModInitializer {
         EvolutionManager.register()
         com.toancao.pokemonai.utils.DebugCommands.register()
         com.toancao.pokemonai.events.DragonGateEvent.register()
-        
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("flyingspawn")) {
+            logger.error("========== MOD CONFLICT WARNING ==========")
+            logger.error("Detected legacy mod TC_Cobble_Flight (flyingspawn) is still installed!")
+            logger.error("The new flight system in TC_world_reborn will be TEMPORARILY DISABLED to yield control to the old mod.")
+            logger.error("Please remove the TC_Cobble_Flight jar from your mods folder to use the latest flight system!")
+            logger.error("==========================================")
+        } else {
+            // Đăng ký danh sách các pokemon có thể bay
+            com.toancao.pokemonai.flight.CustomFlightInit.registerDefaultFlyingPokemon()
+            
+            com.toancao.pokemonai.flight.CustomFlightManager.register()
+        }
+
         com.toancao.pokemonai.events.NoticeEventManager.registerProvider { level ->
             val phaseName = com.toancao.pokemonai.events.DragonGateEvent.currentPhase.name
             

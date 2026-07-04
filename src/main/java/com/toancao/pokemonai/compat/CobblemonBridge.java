@@ -127,4 +127,7 @@ public class CobblemonBridge {
             level.playSound(null, pos, sound, net.minecraft.sounds.SoundSource.NEUTRAL, volume, pitch);
         }
     }
+    public static void setFlyingFlag(PokemonEntity entity, boolean value) {
+        entity.setBehaviourFlag(com.cobblemon.mod.common.entity.pokemon.PokemonBehaviourFlag.FLYING, value);
+    }
 }

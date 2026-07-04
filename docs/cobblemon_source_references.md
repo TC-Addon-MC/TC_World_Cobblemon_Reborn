@@ -57,6 +57,7 @@ Tài liệu này lưu lại các đường dẫn tới các file quan trọng tr
 - **Chi tiết quan trọng:** 
   - Kế thừa từ `MoveControl` của Minecraft gốc nhưng có tùy chỉnh sâu cho Pokémon.
   - Khi gọi hàm `moveControl.setWantedPosition(...)`, hệ thống sẽ tự dùng hàm nội suy `Mth.approachDegrees` để quay đầu cá về mục tiêu (tránh bẻ góc giật cục) và tự giới hạn `speed` phù hợp với môi trường lỏng. Tránh dùng `deltaMovement` thủ công nếu muốn di chuyển tự nhiên.
+  - **LƯU Ý QUAN TRỌNG VỀ BAY TRÊN KHÔNG (Custom Flight System):** `moveControl.setWantedPosition(...)` **CHỈ** hoạt động trục Y (lên/xuống) đối với những Pokémon có cấu hình MoveControl gốc là `Flying` hoặc `Swimming`. Nếu bạn ép một Pokémon chạy trên cạn (Ground entity) bay lên không trung bằng `setWantedPosition`, nó sẽ phớt lờ trục Y và chỉ đi bộ/nhảy ở dưới đất. Vì vậy, để làm mọi Pokémon cạn bay lượn trên không như hệ thống `CustomFlightManager` yêu cầu, ta **BẮT BUỘC** phải can thiệp trực tiếp vào `deltaMovement` và `yRot` thay vì dùng `PokemonMoveControl`.
 
 ### 10. Giao Diện Pokedex (Client-side)
 **Đường dẫn:** `\client\gui\pokedex\PokedexGUI.kt`
