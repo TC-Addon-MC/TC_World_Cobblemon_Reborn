@@ -24,6 +24,7 @@ object BlockRegistry {
     val DRAGON_GATE_WAYPOINT_BLOCK = DragonGateWaypointBlock()
     val DRAGON_GATE_TOP_BLOCK = DragonGateTopBlock()
     val TC_TOP_BOTTOM_BLOCK = TcTopBottomBlock()
+    val CLOUD_BLOCK = com.toancao.pokemonai.blocks.CloudBlock()
     val EVENT_DEVICE = com.toancao.pokemonai.items.EventDeviceItem(net.minecraft.world.item.Item.Properties().stacksTo(1))
 
     val TC_REBORN_TAB: CreativeModeTab = FabricItemGroup.builder()
@@ -55,6 +56,7 @@ object BlockRegistry {
         registerBlock("dragon_gate_waypoint", DRAGON_GATE_WAYPOINT_BLOCK)
         registerBlock("dragon_gate_top", DRAGON_GATE_TOP_BLOCK)
         registerBlock("tc_top_bottom", TC_TOP_BOTTOM_BLOCK)
+        registerBlock("cloud_block", CLOUD_BLOCK)
 
         Registry.register(
             BuiltInRegistries.ITEM,

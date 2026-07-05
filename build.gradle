@@ -81,6 +81,6 @@ tasks.named("sourcesJar") {
 
 tasks.register('copyToDownload', Copy) {
 	from tasks.remapJar.archiveFile
-	into "D:/Minecraft/allmod/TC_VeinGlow_Java/download"
+	into "D:/Modrinth/profiles/Cobblemon Official Modpack [Fabric]/mods"
 }
 build.finalizedBy(copyToDownload)

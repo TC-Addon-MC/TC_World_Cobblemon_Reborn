@@ -89,8 +89,13 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                 // Nhảy lên cao (vận tốc ~1.2 đến 1.5 sẽ bay lên khoảng 4-6 block)
                 val baseVel = com.toancao.pokemonai.config.MagikarpConfigManager.config.jumpVelocityMin
                 val maxOffset = com.toancao.pokemonai.config.MagikarpConfigManager.config.jumpVelocityMaxOffset
-                val jumpVel = baseVel + level.random.nextDouble() * maxOffset
-                entity.deltaMovement = entity.deltaMovement.add(0.0, jumpVel, 0.0)
+                var jumpVel = (baseVel + level.random.nextDouble() * maxOffset).toFloat()
+
+                // Bắn Event
+                jumpVel = com.toancao.pokemonai.api.PokemonAIEvents.ON_MAGIKARP_JUMP.invoker().onMagikarpJump(pokemonEntity, jumpVel)
+                if (jumpVel <= 0f) return // Bị mod khác cancel nhảy/tiến hóa
+
+                entity.deltaMovement = entity.deltaMovement.add(0.0, jumpVel.toDouble(), 0.0)
                 entity.hasImpulse = true
                 entity.hurtMarked = true
                 

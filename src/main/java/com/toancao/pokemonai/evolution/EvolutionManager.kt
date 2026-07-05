@@ -87,6 +87,10 @@ object EvolutionManager {
     fun forceEvolve(pokemon: PokemonEntity, targetSpecies: String) {
         if (!CobblemonBridge.isWild(pokemon)) return
 
+        // Gọi API Event
+        val allow = com.toancao.pokemonai.api.PokemonAIEvents.BEFORE_FORCE_EVOLVE.invoker().onBeforeForceEvolve(pokemon, targetSpecies)
+        if (!allow) return
+
         // Tránh trigger lại trong khi đang đợi animation (50 tick)
         val pokemonId = CobblemonBridge.getEntityUUID(pokemon)
         if (pokemonId in evolving) return
@@ -114,6 +118,7 @@ object EvolutionManager {
             },
             onComplete = {
                 evolving.remove(pokemonId)
+                com.toancao.pokemonai.api.PokemonAIEvents.AFTER_FORCE_EVOLVE.invoker().onAfterForceEvolve(pokemon, targetSpecies)
             }
         )
     }

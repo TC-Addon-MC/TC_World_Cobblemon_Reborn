@@ -15,130 +15,167 @@ object DebugCommands {
     }
 
     private fun registerCommands(dispatcher: CommandDispatcher<CommandSourceStack>) {
-        dispatcher.register(
-            Commands.literal("tcpoke")
-                .requires { it.hasPermission(2) }
+        val root = Commands.literal("tcpoke").requires { it.hasPermission(2) }
+
+        registerDebugCommand(root)
+        registerActionCommand(root)
+        registerEventCommand(root)
+        registerFlyCommand(root)
+        registerFlyCancelCommand(root)
+        registerSpawnAirCommand(root)
+
+        dispatcher.register(root)
+    }
+
+    private fun registerDebugCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("debug")
+                .then(Commands.literal("on").executes {
+                    DebugUtils.enabled = true
+                    it.source.sendSuccess({ Component.translatable("command.tc_reborn.debug.on") }, false)
+                    1
+                })
+                .then(Commands.literal("off").executes {
+                    DebugUtils.enabled = false
+                    it.source.sendSuccess({ Component.translatable("command.tc_reborn.debug.off") }, false)
+                    1
+                })
+        )
+    }
+
+    private fun registerActionCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("action")
                 .then(
-                    Commands.literal("debug")
-                        .then(Commands.literal("on").executes {
-                            DebugUtils.enabled = true
-                            it.source.sendSuccess({ Component.translatable("command.tc_reborn.debug.on") }, false)
-                            1
-                        })
-                        .then(Commands.literal("off").executes {
-                            DebugUtils.enabled = false
-                            it.source.sendSuccess({ Component.translatable("command.tc_reborn.debug.off") }, false)
-                            1
-                        })
-                )
-                .then(
-                    Commands.literal("action")
+                    Commands.argument("pokemon_name", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .suggests { _, builder ->
+                            listOf("all", "magikarp").forEach { builder.suggest(it) }
+                            builder.buildFuture()
+                        }
                         .then(
-                            Commands.argument("pokemon_name", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                .suggests { _, builder ->
-                                    val names = listOf("all", "magikarp")
-                                    names.forEach { builder.suggest(it) }
-                                    builder.buildFuture()
-                                }
+                            Commands.argument("targets", net.minecraft.commands.arguments.EntityArgument.entities())
                                 .then(
-                                    Commands.argument("targets", net.minecraft.commands.arguments.EntityArgument.entities())
-                                        .then(
-                                            Commands.argument("actionName", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                                .suggests { _, builder ->
-                                                    val actions = listOf("jump", "evolve", "circle")
-                                                    actions.forEach { builder.suggest(it) }
-                                                    builder.buildFuture()
-                                                }
-                                                .then(
-                                                    Commands.argument("same_y", com.mojang.brigadier.arguments.BoolArgumentType.bool())
-                                                        .executes { context -> executeAction(context, true) }
-                                                )
-                                                .executes { context -> executeAction(context, false) }
-                                        )
-                                )
-                        )
-                )
-                .then(
-                    Commands.literal("event")
-                        .then(
-                            Commands.literal("dragongate")
-                                .then(
-                                    Commands.literal("start")
-                                        .executes { context ->
-                                            com.toancao.pokemonai.events.DragonGateEvent.trigger(context.source.level)
-                                            context.source.sendSuccess({ Component.translatable("command.tc_reborn.dragongate.started") }, true)
-                                            1
+                                    Commands.argument("actionName", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                        .suggests { _, builder ->
+                                            listOf("jump", "evolve", "circle").forEach { builder.suggest(it) }
+                                            builder.buildFuture()
                                         }
-                                )
-                                .then(
-                                    Commands.literal("stop")
-                                        .executes { context ->
-                                            com.toancao.pokemonai.events.DragonGateEvent.stop(context.source.level)
-                                            context.source.sendSuccess({ Component.translatable("command.tc_reborn.dragongate.stopped") }, true)
-                                            1
-                                        }
-                                )
-                        )
-                )
-                .then(
-                    Commands.literal("fly")
-                        .then(
-                            Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                .suggests { _, builder ->
-                                    com.toancao.pokemonai.flight.CustomFlightRegistry.getAllSpeciesNames()
-                                        .forEach { builder.suggest(it) }
-                                    builder.buildFuture()
-                                }
-                                .then(
-                                    Commands.argument("pos", net.minecraft.commands.arguments.coordinates.Vec3Argument.vec3())
                                         .then(
-                                            Commands.argument("action", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                                .suggests { _, builder ->
-                                                    builder.suggest("hover")
-                                                    builder.suggest("land")
-                                                    builder.buildFuture()
-                                                }
-                                                .executes { context ->
-                                                    val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
-                                                    val pos = net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(context, "pos")
-                                                    val action = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "action")
-                                                    executeFly(context, species, pos, action)
-                                                }
+                                            Commands.argument("same_y", com.mojang.brigadier.arguments.BoolArgumentType.bool())
+                                                .executes { context -> executeAction(context, true) }
                                         )
+                                        .executes { context -> executeAction(context, false) }
                                 )
-                                .then(Commands.literal("takeoff")
-                                    .then(Commands.argument("altitude", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0))
-                                        .executes { executeForceAction(it, "takeoff_alt") })
-                                    .executes { executeForceAction(it, "takeoff") })
-                                .then(Commands.literal("land").executes { executeForceAction(it, "land") })
-                                .then(Commands.literal("stop").executes { executeForceAction(it, "stop") })
-                                .then(Commands.literal("hover").executes { executeForceAction(it, "hover") })
-                                .then(Commands.literal("up")
-                                    .then(Commands.argument("blocks", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0))
-                                        .executes { executeForceAction(it, "up_blocks") })
-                                    .executes { executeForceAction(it, "up") })
-                                .then(Commands.literal("down")
-                                    .then(Commands.argument("blocks", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0))
-                                        .executes { executeForceAction(it, "down_blocks") })
-                                    .executes { executeForceAction(it, "down") })
-                        )
-                )
-                .then(
-                    Commands.literal("flycancel")
-                        .then(
-                            Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                .suggests { _, builder ->
-                                    com.toancao.pokemonai.flight.CustomFlightRegistry.getAllSpeciesNames()
-                                        .forEach { builder.suggest(it) }
-                                    builder.buildFuture()
-                                }
-                                .executes { context ->
-                                    val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
-                                    executeFlyCancel(context, species)
-                                }
                         )
                 )
         )
+    }
+
+    private fun registerEventCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("event")
+                .then(
+                    Commands.literal("dragongate")
+                        .then(Commands.literal("start").executes { context ->
+                            com.toancao.pokemonai.events.DragonGateEvent.trigger(context.source.level)
+                            context.source.sendSuccess({ Component.translatable("command.tc_reborn.dragongate.started") }, true)
+                            1
+                        })
+                        .then(Commands.literal("stop").executes { context ->
+                            com.toancao.pokemonai.events.DragonGateEvent.stop(context.source.level)
+                            context.source.sendSuccess({ Component.translatable("command.tc_reborn.dragongate.stopped") }, true)
+                            1
+                        })
+                )
+        )
+    }
+
+    private fun registerFlyCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("fly")
+                .then(
+                    Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .suggests { _, builder ->
+                            com.toancao.pokemonai.flight.CustomFlightRegistry.getAllSpeciesNames()
+                                .forEach { builder.suggest(it) }
+                            builder.buildFuture()
+                        }
+                        .then(
+                            Commands.argument("pos", net.minecraft.commands.arguments.coordinates.Vec3Argument.vec3())
+                                .then(
+                                    Commands.argument("action", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                        .suggests { _, builder ->
+                                            builder.suggest("hover")
+                                            builder.suggest("land")
+                                            builder.buildFuture()
+                                        }
+                                        .executes { context ->
+                                            val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
+                                            val pos = net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(context, "pos")
+                                            val action = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "action")
+                                            executeFly(context, species, pos, action)
+                                        }
+                                )
+                        )
+                        .then(Commands.literal("takeoff")
+                            .then(Commands.argument("altitude", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0))
+                                .executes { executeForceAction(it, "takeoff_alt") })
+                            .executes { executeForceAction(it, "takeoff") })
+                        .then(Commands.literal("land").executes { executeForceAction(it, "land") })
+                        .then(Commands.literal("stop").executes { executeForceAction(it, "stop") })
+                        .then(Commands.literal("hover").executes { executeForceAction(it, "hover") })
+                        .then(Commands.literal("up")
+                            .then(Commands.argument("blocks", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0))
+                                .executes { executeForceAction(it, "up_blocks") })
+                            .executes { executeForceAction(it, "up") })
+                        .then(Commands.literal("down")
+                            .then(Commands.argument("blocks", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0))
+                                .executes { executeForceAction(it, "down_blocks") })
+                            .executes { executeForceAction(it, "down") })
+                )
+        )
+    }
+
+    private fun registerFlyCancelCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("flycancel")
+                .then(
+                    Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .suggests { _, builder ->
+                            com.toancao.pokemonai.flight.CustomFlightRegistry.getAllSpeciesNames()
+                                .forEach { builder.suggest(it) }
+                            builder.buildFuture()
+                        }
+                        .executes { context ->
+                            val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
+                            executeFlyCancel(context, species)
+                        }
+                )
+        )
+    }
+
+    private fun registerSpawnAirCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("spawnair")
+                .executes { context -> executeSpawnAir(context) }
+        )
+    }
+
+    private fun executeSpawnAir(context: com.mojang.brigadier.context.CommandContext<CommandSourceStack>): Int {
+        val player = context.source.player
+        if (player == null) {
+            context.source.sendFailure(Component.literal("Lệnh này chỉ dùng được cho người chơi!"))
+            return 0
+        }
+
+        val success = com.toancao.pokemonai.flight.spawner.CustomAirSpawner.trySpawnNearPlayer(player)
+        if (success) {
+            context.source.sendSuccess({ Component.literal("Đã kích hoạt Air Spawn thành công (tạo CloudBlock và spawn Pokemon)!") }, true)
+            return 1
+        } else {
+            context.source.sendFailure(Component.literal("Air Spawn thất bại (Không có pokemon phù hợp môi trường hoặc xịt rate)"))
+            return 0
+        }
     }
 
     private fun executeFly(

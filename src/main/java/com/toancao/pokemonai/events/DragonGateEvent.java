@@ -66,12 +66,17 @@ public class DragonGateEvent {
                     broadcast(level, "[Sự Kiện Long Môn] Sự kiện kết thúc. Hẹn gặp lại kỳ sau!");
                     
                     clearEventTags(level);
+                    com.toancao.pokemonai.api.PokemonAIEvents.DRAGON_GATE_END.invoker().onDragonGateEnd(level);
                 }
             }
         }
     }
 
     public static void trigger(ServerLevel level) {
+        if (!com.toancao.pokemonai.api.PokemonAIEvents.DRAGON_GATE_START.invoker().onDragonGateStart(level)) {
+            return; // Cancelled by another mod
+        }
+
         currentPhase = EventPhase.SWIMMING;
         phaseTicks = com.toancao.pokemonai.config.MagikarpConfigManager.INSTANCE.getConfig().getSwimmingPhaseDurationTicks();
         
@@ -142,6 +147,7 @@ public class DragonGateEvent {
         currentPhase = EventPhase.IDLE;
         phaseTicks = 0;
         clearEventTags(level);
+        com.toancao.pokemonai.api.PokemonAIEvents.DRAGON_GATE_END.invoker().onDragonGateEnd(level);
         DebugUtils.INSTANCE.logEvent("DragonGateEvent force stopped!");
     }
 

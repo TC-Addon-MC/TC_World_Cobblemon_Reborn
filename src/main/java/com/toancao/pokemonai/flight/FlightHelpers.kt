@@ -23,8 +23,9 @@ object FlightHelpers {
         val vel = mob.deltaMovement
         if (vel.x * vel.x + vel.z * vel.z > 0.001) {
             val yaw = (Math.toDegrees(atan2(vel.z, vel.x)) - 90.0).toFloat()
-            // Xoay mượt
-            mob.yRot = rotlerp(mob.yRot, yaw, 10f)
+            // Xoay đầu mượt nhưng đủ nhanh (tăng từ 10f lên 25f) để bắt kịp vận tốc,
+            // tránh hiện tượng bay ngang/lùi khi đổi hướng gắt (ví dụ lúc bay vòng).
+            mob.yRot = rotlerp(mob.yRot, yaw, 25f)
             mob.yBodyRot = mob.yRot
             mob.yHeadRot = mob.yRot
         }
@@ -38,31 +39,15 @@ object FlightHelpers {
     }
 
     fun estimateGroundY(mob: net.minecraft.world.entity.Mob): Double {
-        val level = mob.level() ?: return mob.y - 10.0
-        val groundY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, mob.x.toInt(), mob.z.toInt())
-        return groundY.toDouble()
+        val level = mob.level() ?: return mob.y
+        return level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, mob.x.toInt(), mob.z.toInt()).toDouble()
     }
 
     fun estimateWaterSurfaceY(mob: net.minecraft.world.entity.Mob): Double {
-        val level = mob.level() ?: return mob.y - 10.0
-        val surfaceY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, mob.x.toInt(), mob.z.toInt())
-        return surfaceY.toDouble()
+        val level = mob.level() ?: return mob.y
+        return level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.OCEAN_FLOOR, mob.x.toInt(), mob.z.toInt()).toDouble() // Có thể không chuẩn bằng raycast nhưng an toàn hơn
     }
 
-    /**
-     * Trả về khoảng cách đến player gần nhất trong vòng activationRadius.
-     * Trả về -1.0 nếu không tìm thấy.
-     */
-    fun nearestPlayerDistance(mob: net.minecraft.world.entity.Mob): Double {
-        val level = mob.level() ?: return -1.0
-        val r = 128.0 // Scan rộng hơn để giảm tốc độ từ từ khi ra xa
-        val players = level.getEntitiesOfClass(
-            net.minecraft.world.entity.player.Player::class.java,
-            net.minecraft.world.phys.AABB(mob.x - r, mob.y - r, mob.z - r, mob.x + r, mob.y + r, mob.z + r)
-        )
-        return if (players.isEmpty()) -1.0
-        else players.minOf { it.distanceTo(mob).toDouble() }
-    }
 
     fun disableAI(mob: net.minecraft.world.entity.Mob) {
         mob.navigation?.stop()
@@ -119,4 +104,67 @@ object FlightHelpers {
         return if (blockAhead) Vec3(rawVec.x, rawVec.y + climbAmount * 10.0, rawVec.z)
         else rawVec
     }
+
+    fun spawnTakeoffParticles(level: net.minecraft.world.level.Level, pokemon: net.minecraft.world.entity.Entity, progress: Double, style: Int = 0) {
+    if (level !is net.minecraft.server.level.ServerLevel) return
+
+    val random = pokemon.random
+    val baseRadius = pokemon.bbWidth.toDouble() * 1.5
+
+    // Giảm số lượng xuống mức cực thấp (chỉ 2 đến 4 hạt mỗi nhịp) để tránh bị đặc quánh
+    val actualCount = if (style == 2) 2 else (2 + progress * 2).toInt()
+
+    // Chuyển toàn bộ sang các hạt kích thước nhỏ, tơi xốp, dạng bụi mịn (dust)
+    val (primaryParticle, secondaryParticle) = when (style) {
+        0 -> Pair(net.minecraft.core.particles.ParticleTypes.WHITE_ASH, net.minecraft.core.particles.ParticleTypes.SNOWFLAKE) // Bụi trắng li ti + sương nổi
+        1 -> Pair(net.minecraft.core.particles.ParticleTypes.ASH, net.minecraft.core.particles.ParticleTypes.WHITE_ASH)       // Bụi tro đen/trắng cuốn theo gió
+        2 -> Pair(net.minecraft.core.particles.ParticleTypes.GLOW, net.minecraft.core.particles.ParticleTypes.END_ROD)        // Bụi lốm đốm phát sáng
+        else -> Pair(net.minecraft.core.particles.ParticleTypes.ASH, net.minecraft.core.particles.ParticleTypes.SMOKE) // Bụi đất mờ sát mặt đất
+    }
+
+    for (i in 0 until actualCount) {
+        val angle = random.nextDouble() * kotlin.math.PI * 2.0
+        
+        // Vòng tỏa hẹp hơn để bụi ôm sát khu vực cất cánh
+        val radius = baseRadius + (progress * 1.0) + (random.nextDouble() * 0.2) 
+
+        val px = pokemon.x + kotlin.math.cos(angle) * radius
+        val pz = pokemon.z + kotlin.math.sin(angle) * radius
+        
+        // Giảm tốc độ văng ngang, gần như không có lực đẩy dọc (vy) để bụi bay là là mặt đất
+        val speed = 0.04 + random.nextDouble() * 0.04
+        val vx = kotlin.math.cos(angle) * speed
+        val vz = kotlin.math.sin(angle) * speed
+        val vy = random.nextDouble() * 0.015 // Rất thấp
+
+        // Bụi văng xa
+        level.sendParticles(
+            primaryParticle,
+            px, pokemon.y + 0.05, pz,
+            0, vx, vy, vz, 1.0
+        )
+
+        // Bụi lơ lửng tại chỗ (chỉ xuất hiện 33% số lần để tạo độ thưa thớt)
+        if (random.nextInt(3) == 0) {
+            level.sendParticles(
+                secondaryParticle,
+                px + (random.nextDouble() - 0.5) * 0.2,
+                pokemon.y + 0.1 + random.nextDouble() * 0.1,
+                pz + (random.nextDouble() - 0.5) * 0.2,
+                0, vx * 0.1, vy * 0.5, vz * 0.1, 1.0
+            )
+        }
+    }
+
+    if (progress < 0.1) {
+        level.playSound(
+            null,
+            pokemon.x, pokemon.y, pokemon.z,
+            net.minecraft.sounds.SoundEvents.WIND_CHARGE_BURST,
+            net.minecraft.sounds.SoundSource.AMBIENT,
+            0.3f, // Tiếng gió thật nhỏ
+            1.0f + (random.nextFloat() * 0.2f)
+        )
+    }
+}
 }

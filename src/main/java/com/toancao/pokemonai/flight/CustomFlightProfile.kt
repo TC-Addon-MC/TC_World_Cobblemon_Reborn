@@ -10,14 +10,22 @@ class CustomFlightProfile(
     var agitation: Double = 0.0
     var spawnObserveTicks: Int = 0
     var isLegendary: Boolean = false
-    var anchorX: Double = 0.0
-    var anchorY: Double = 0.0
-    var anchorZ: Double = 0.0
+    var anchorX: Double = pokemon.x
+    var anchorY: Double = pokemon.y
+    var anchorZ: Double = pokemon.z
+    
+    var takeoffParticleStyle: Int = kotlin.random.Random.nextInt(4)
 
     var currentYaw: Double = Random.nextDouble() * 360.0
     var idleTicks: Int = 0
     var flightCount: Int = 0
     var verticalVelocity: Double = 0.0
+    
+    // Takeoff Physics
+    var velocityX: Double = 0.0
+    var velocityY: Double = 0.0
+    var velocityZ: Double = 0.0
+    var dampingFactor: Double = config.takeoffDampingFactor
     var speedBonus: Double = 0.25
     var currentPreferredHeight: Double = config.preferredHeight
     var currentStamina: Double = config.maxFlightTicks.toDouble()

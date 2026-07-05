@@ -10,10 +10,16 @@ object FlightTransitionRules {
     /**
      * Đánh giá các điều kiện chuyển đổi trạng thái khi Pokémon đang ở dưới đất (GROUNDED).
      */
-    fun evaluateGrounded(pokemon: PokemonEntity, profile: CustomFlightProfile, globalTick: Int): FlightState? {
-        val mob = pokemon as net.minecraft.world.entity.Mob
+    fun evaluateGrounded(machine: NormalFlightStateMachine, globalTick: Int): FlightState? {
+        val mob = machine.pokemon as net.minecraft.world.entity.Mob
+        val profile = machine.profile
 
-        if (!isPlayerWithinFlyRadius(mob, profile)) return null
+        if (!machine.hasPlayerInRadius) return null
+        
+        // Không tự ý cất cánh nếu vừa bị đánh (để người chơi dễ dàng chiến đấu)
+        if (mob.lastHurtByMob != null && mob.tickCount - mob.lastHurtByMobTimestamp < 300) {
+            return null
+        }
 
         // Kiểm tra tỉ lệ cất cánh/lơ lửng mỗi giây (20 ticks) thay vì mỗi tick
         if (globalTick % 20 == 0) {
@@ -44,15 +50,16 @@ object FlightTransitionRules {
     /**
      * Đánh giá các điều kiện chuyển đổi trạng thái khi Pokémon đang bay (FLYING).
      */
-    fun evaluateFlying(pokemon: PokemonEntity, profile: CustomFlightProfile, globalTick: Int): FlightState? {
-        val mob = pokemon as net.minecraft.world.entity.Mob
+    fun evaluateFlying(machine: NormalFlightStateMachine, globalTick: Int): FlightState? {
+        val mob = machine.pokemon as net.minecraft.world.entity.Mob
+        val profile = machine.profile
         // Hết stamina thì chuyển trạng thái hạ cánh
         if (profile.currentStamina <= 0) {
             return FlightState.LANDING
         }
         
         // Rời khỏi bán kính người chơi thì hạ cánh
-        if (!isPlayerWithinFlyRadius(mob, profile)) {
+        if (!machine.hasPlayerInRadius) {
             return FlightState.LANDING
         }
 
@@ -62,12 +69,12 @@ object FlightTransitionRules {
                 return FlightState.LANDING
             }
 
-            // Ưu tiên: Tỉ lệ chuyển sang lơ lửng trên mặt đất đối với các pokemon được phép
-            if (profile.config.canGroundHover && Random.nextDouble() < 0.85) { // 85% xác suất mỗi 5s
+            // Tỉ lệ chuyển sang lơ lửng trên mặt đất (giảm từ 85% xuống 10% để bớt giật cục)
+            if (profile.config.canGroundHover && Random.nextDouble() < 0.10) {
                 return FlightState.GROUND_HOVERING
             }
 
-            // Tỉ lệ chuyển sang lượn vòng (chỉ khi đã đạt đủ độ cao để tránh giật lag)
+            // Tỉ lệ chuyển sang lượn vòng
             val currentHeight = mob.y - FlightHelpers.estimateGroundY(mob)
             if (currentHeight >= profile.currentPreferredHeight * 0.8) {
                 if (profile.config.circularFlightChance > 0 && Random.nextDouble() < profile.config.circularFlightChance) {
@@ -82,20 +89,30 @@ object FlightTransitionRules {
     /**
      * Đánh giá chuyển đổi trạng thái khi đang bay lượn vòng.
      */
-    fun evaluateCircularFlying(pokemon: PokemonEntity, profile: CustomFlightProfile, globalTick: Int): FlightState? {
-        val mob = pokemon as net.minecraft.world.entity.Mob
+    fun evaluateCircularFlying(machine: NormalFlightStateMachine, globalTick: Int): FlightState? {
+        val mob = machine.pokemon as net.minecraft.world.entity.Mob
+        val profile = machine.profile
         // Hết stamina thì hạ cánh
         if (profile.currentStamina <= 0) {
             return FlightState.LANDING
         }
 
         // Rời khỏi bán kính người chơi thì hạ cánh
-        if (!isPlayerWithinFlyRadius(mob, profile)) {
+        if (!machine.hasPlayerInRadius) {
             return FlightState.LANDING
         }
 
+        // Tính toán thời gian để hoàn thành ít nhất 1 vòng tròn
+        val radius = profile.config.circularFlightRadius
+        val speed = profile.config.flightSpeed
+        val circumference = 2 * Math.PI * radius
+        // Giả sử speed = số block/tick (mặc định speed là 0.5 ~ 0.5 block/tick)
+        val timeForOneCircle = (circumference / speed).toInt()
+        
+        // Đảm bảo bay ít nhất 1 vòng (hoặc theo cấu hình nếu cấu hình lớn hơn)
+        val duration = kotlin.math.max(timeForOneCircle, profile.config.circularFlightDuration)
+        
         // Hết thời gian bay lượn vòng thì quay về bay thẳng
-        val duration = kotlin.math.max(100, profile.config.circularFlightDuration)
         if (profile.ticksInCurrentState >= duration) {
             return FlightState.FLYING
         }
@@ -106,21 +123,22 @@ object FlightTransitionRules {
     /**
      * Đánh giá chuyển đổi trạng thái khi đang bay lơ lửng trên mặt đất.
      */
-    fun evaluateGroundHovering(pokemon: PokemonEntity, profile: CustomFlightProfile, globalTick: Int): FlightState? {
-        val mob = pokemon as net.minecraft.world.entity.Mob
+    fun evaluateGroundHovering(machine: NormalFlightStateMachine, globalTick: Int): FlightState? {
+        val mob = machine.pokemon as net.minecraft.world.entity.Mob
+        val profile = machine.profile
         // Hết stamina thì hạ cánh
         if (profile.currentStamina <= 0) {
             return FlightState.LANDING
         }
 
         // Rời khỏi bán kính người chơi thì hạ cánh
-        if (!isPlayerWithinFlyRadius(mob, profile)) {
+        if (!machine.hasPlayerInRadius) {
             return FlightState.LANDING
         }
 
         if (globalTick % 100 == 0) {
             // Tỉ lệ kết thúc lơ lửng và bay thẳng tiếp
-            if (Random.nextDouble() < 0.15) { // Chỉ 15% cơ hội thoát mỗi 5s -> lơ lửng rất lâu
+            if (!profile.config.hoverOnly && Random.nextDouble() < 0.15) { // Chỉ 15% cơ hội thoát mỗi 5s -> lơ lửng rất lâu
                 return FlightState.FLYING
             }
         }
@@ -129,20 +147,26 @@ object FlightTransitionRules {
     }
 
     /**
-     * Hàm phụ trợ kiểm tra xem người chơi có trong bán kính cho phép cất cánh không.
+     * Đánh giá chuyển đổi trạng thái khi đang lơ lửng trên mặt nước.
      */
-    private fun isPlayerWithinFlyRadius(mob: net.minecraft.world.entity.Mob, profile: CustomFlightProfile): Boolean {
-        val level = mob.level() ?: return false
-        val r = profile.config.activationRadius
-        val ySearch = kotlin.math.max(r, profile.currentPreferredHeight + 10.0)
+    fun evaluateWaterHovering(machine: NormalFlightStateMachine, globalTick: Int): FlightState? {
+        val profile = machine.profile
+        // Hết stamina thì hạ cánh
+        if (profile.currentStamina <= 0) {
+            return FlightState.LANDING
+        }
 
-        val players = level.getEntitiesOfClass(
-            Player::class.java,
-            AABB(
-                mob.x - r, mob.y - ySearch, mob.z - r,
-                mob.x + r, mob.y + ySearch, mob.z + r
-            )
-        )
-        return players.isNotEmpty()
+        if (!machine.hasPlayerInRadius) {
+            return FlightState.LANDING
+        }
+
+        if (globalTick % 100 == 0) {
+            // Có tỉ lệ nhỏ quay lại bay thẳng nếu không phải loài chỉ lơ lửng
+            if (!profile.config.hoverOnly && Random.nextDouble() < 0.15) {
+                return FlightState.FLYING
+            }
+        }
+
+        return null
     }
 }

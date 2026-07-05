@@ -17,12 +17,57 @@ class NormalFlightStateMachine(
     val profile: CustomFlightProfile = CustomFlightProfile(pokemon, selectedConfig)
 
     private var globalTick = 0
+    
+    var lastPlayerSeenTick: Int = 0
+    private var idleTimer = 0
+    var nearestPlayer: Player? = null
+    var nearestDistance: Double = Double.MAX_VALUE
+    var hasPlayerInRadius: Boolean = false
+    private var lastScanTick = 0
 
+    fun isFlying(): Boolean {
+        return state == FlightState.TAKING_OFF || state == FlightState.FLYING || 
+               state == FlightState.CIRCULAR_FLYING || state == FlightState.WATER_HOVERING || 
+               state == FlightState.GROUND_HOVERING || state == FlightState.LANDING
+    }
 
+    fun canBeRemovedSafely(unloadDelay: Int): Boolean {
+        if (isFlying()) return false
+        return idleTimer > unloadDelay
+    }
 
+    fun markPlayerSeen() {
+        lastPlayerSeenTick = globalTick
+        idleTimer = 0
+    }
     fun cleanup() {
         profile.debugTextDisplay?.discard()
         profile.debugTextDisplay = null
+    }
+
+    private fun updatePlayerContext() {
+        // Chỉ scan mỗi 20 ticks
+        if (globalTick - lastScanTick < 20 && globalTick != 1) return 
+        lastScanTick = globalTick
+        
+        val level = mob.level() ?: return
+        val r = 128.0
+        val box = net.minecraft.world.phys.AABB(mob.x - r, mob.y - r, mob.z - r, mob.x + r, mob.y + r, mob.z + r)
+        val players = level.getEntitiesOfClass(Player::class.java, box)
+        
+        if (players.isEmpty()) {
+            nearestPlayer = null
+            nearestDistance = Double.MAX_VALUE
+            hasPlayerInRadius = false
+        } else {
+            nearestPlayer = players.minByOrNull { it.distanceTo(mob) }
+            nearestDistance = nearestPlayer!!.distanceTo(mob).toDouble()
+            hasPlayerInRadius = nearestDistance <= profile.config.activationRadius
+        }
+        
+        if (hasPlayerInRadius) {
+            markPlayerSeen()
+        }
     }
 
     fun tick() {
@@ -32,15 +77,45 @@ class NormalFlightStateMachine(
         }
         globalTick++
         profile.ticksInCurrentState++
+        
+        updatePlayerContext()
+        
+        if (isFlying() && state != FlightState.LANDING) {
+            if (profile.config.dropOnHit && mob.hurtTime > 0) {
+                transitionTo(FlightState.LANDING)
+                return
+            }
+        }
+
+        if (!isFlying()) {
+            if (globalTick - lastPlayerSeenTick > 100) {
+                idleTimer++
+            }
+        } else {
+            idleTimer = 0
+        }
 
         updateDebugDisplay()
 
         val isEligible = com.toancao.pokemonai.utils.AIFilter.isEligible(pokemon)
+        
+        // Nếu không đủ điều kiện (đang ngủ, bị thu phục, v.v.)
         if (!isEligible) {
-            if (state == FlightState.TAKING_OFF || state == FlightState.FLYING || state == FlightState.WATER_HOVERING || state == FlightState.GROUND_HOVERING) {
-                transitionTo(FlightState.LANDING)
+            // Khẩn cấp: Nếu đang đánh nhau hoặc có mục tiêu (từ mod khác), phải NHẢ AI NGAY LẬP TỨC!
+            // Không được dùng hạ cánh từ từ (LANDING) vì nó sẽ ghi đè di chuyển của việc tấn công.
+            if (pokemon.target != null || pokemon.battleId != null) {
+                transitionTo(FlightState.GROUNDED)
+                com.toancao.pokemonai.compat.CobblemonBridge.setFlyingFlag(pokemon, false)
+                return
             }
-            if (state == FlightState.GROUNDED || state == FlightState.PERCHING) {
+
+            if (isFlying()) {
+                // Nếu đang bay mà lăn ra ngủ, ép nó phải hạ cánh trước
+                transitionTo(FlightState.LANDING)
+            } else if (state == FlightState.LANDING) {
+                // Đang trong quá trình hạ cánh do không đủ điều kiện -> VẪN TIẾP TỤC cho đến khi chạm đất
+            } else {
+                // Nếu đã ở dưới đất (GROUNDED, PERCHING), thả AI về cho Cobblemon
                 com.toancao.pokemonai.compat.CobblemonBridge.setFlyingFlag(pokemon, false)
                 return
             }
@@ -99,7 +174,7 @@ class NormalFlightStateMachine(
             com.toancao.pokemonai.utils.StaminaManager.resetRecoveryRate(profile)
         }
 
-        val nextState = FlightTransitionRules.evaluateGrounded(pokemon, profile, globalTick)
+        val nextState = FlightTransitionRules.evaluateGrounded(this, globalTick)
         if (nextState != null) {
             transitionTo(nextState)
         }
@@ -112,7 +187,11 @@ class NormalFlightStateMachine(
         // Timeout 5 giây (100 ticks) hoặc đã đạt độ cao thì chuyển sang bay thẳng
         if (done || profile.ticksInCurrentState > 100) {
             profile.flightCount++
-            transitionTo(FlightState.FLYING)
+            if (profile.config.hoverOnly) {
+                transitionTo(FlightState.GROUND_HOVERING)
+            } else {
+                transitionTo(FlightState.FLYING)
+            }
             return
         }
 
@@ -122,9 +201,9 @@ class NormalFlightStateMachine(
             return
         }
 
-        // Engine tự dừng khi bị đánh rớt, vào nước...
+        // Engine tự dừng khi bị đánh rớt, vào nước... -> vẫn phải hạ cánh qua LANDING, không được nhảy thẳng xuống GROUNDED vì Pokemon còn ở trên không
         if (!FlightEngine.hasActiveFlight(pokemon)) {
-            transitionTo(FlightState.GROUNDED)
+            transitionTo(FlightState.LANDING)
             return
         }
     }
@@ -133,13 +212,13 @@ class NormalFlightStateMachine(
         com.toancao.pokemonai.utils.StaminaManager.consumeStamina(profile)
         NormalFlightAI.tickFlying(pokemon, profile, globalTick)
 
-        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout → chuyển về GROUNDED
+        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout -> vẫn phải hạ cánh qua LANDING, không được nhảy thẳng xuống GROUNDED vì Pokemon còn ở trên không
         if (!FlightEngine.hasActiveFlight(pokemon)) {
-            transitionTo(FlightState.GROUNDED)
+            transitionTo(FlightState.LANDING)
             return
         }
 
-        val nextState = FlightTransitionRules.evaluateFlying(pokemon, profile, globalTick)
+        val nextState = FlightTransitionRules.evaluateFlying(this, globalTick)
         if (nextState != null) {
             profile.verticalVelocity = 0.0
             transitionTo(nextState)
@@ -150,13 +229,13 @@ class NormalFlightStateMachine(
         com.toancao.pokemonai.utils.StaminaManager.consumeStaminaHover(profile)
         NormalFlightAI.tickWaterHovering(pokemon, profile, globalTick)
 
-        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout → chuyển về GROUNDED
+        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout -> vẫn phải hạ cánh qua LANDING, không được nhảy thẳng xuống GROUNDED vì Pokemon còn ở trên không
         if (!FlightEngine.hasActiveFlight(pokemon)) {
-            transitionTo(FlightState.GROUNDED)
+            transitionTo(FlightState.LANDING)
             return
         }
 
-        val nextState = FlightTransitionRules.evaluateFlying(pokemon, profile, globalTick)
+        val nextState = FlightTransitionRules.evaluateWaterHovering(this, globalTick)
         if (nextState != null) {
             profile.verticalVelocity = 0.0
             transitionTo(nextState)
@@ -167,13 +246,13 @@ class NormalFlightStateMachine(
         com.toancao.pokemonai.utils.StaminaManager.consumeStaminaHover(profile)
         NormalFlightAI.tickGroundHovering(pokemon, profile, globalTick)
 
-        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout → chuyển về GROUNDED
+        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout -> vẫn phải hạ cánh qua LANDING, không được nhảy thẳng xuống GROUNDED vì Pokemon còn ở trên không
         if (!FlightEngine.hasActiveFlight(pokemon)) {
-            transitionTo(FlightState.GROUNDED)
+            transitionTo(FlightState.LANDING)
             return
         }
 
-        val nextState = FlightTransitionRules.evaluateGroundHovering(pokemon, profile, globalTick)
+        val nextState = FlightTransitionRules.evaluateGroundHovering(this, globalTick)
         if (nextState != null) {
             profile.verticalVelocity = 0.0
             transitionTo(nextState)
@@ -184,13 +263,13 @@ class NormalFlightStateMachine(
         com.toancao.pokemonai.utils.StaminaManager.consumeStamina(profile)
         NormalFlightAI.tickCircularFlying(pokemon, profile, globalTick)
 
-        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout → chuyển về GROUNDED
+        // Engine tự dừng khi bị đánh, vào nước, hoặc timeout -> vẫn phải hạ cánh qua LANDING, không được nhảy thẳng xuống GROUNDED vì Pokemon còn ở trên không
         if (!FlightEngine.hasActiveFlight(pokemon)) {
-            transitionTo(FlightState.GROUNDED)
+            transitionTo(FlightState.LANDING)
             return
         }
 
-        val nextState = FlightTransitionRules.evaluateCircularFlying(pokemon, profile, globalTick)
+        val nextState = FlightTransitionRules.evaluateCircularFlying(this, globalTick)
         if (nextState != null) {
             profile.verticalVelocity = 0.0
             transitionTo(nextState)
@@ -219,7 +298,24 @@ class NormalFlightStateMachine(
         if (newState == FlightState.TAKING_OFF) {
             profile.refreshPreferredHeight()
             profile.verticalVelocity = 0.0
-            profile.currentYaw = kotlin.random.Random.nextDouble() * 360.0
+            
+            var yawChosen = false
+            if (nearestPlayer != null) {
+                // Nếu người chơi ở trong phạm vi (gần), tỉ lệ 30%. Nếu ngoài phạm vi (xa), tỉ lệ 50%
+                val chance = if (hasPlayerInRadius) 0.3 else 0.5
+                if (kotlin.random.Random.nextDouble() < chance) {
+                    val dx = nearestPlayer!!.x - mob.x
+                    val dz = nearestPlayer!!.z - mob.z
+                    val exactYaw = Math.toDegrees(kotlin.math.atan2(dz, dx)) - 90.0
+                    // Sai số ngẫu nhiên +- 15 độ
+                    val offset = (kotlin.random.Random.nextDouble() - 0.5) * 30.0
+                    profile.currentYaw = (exactYaw + offset) % 360.0
+                    yawChosen = true
+                }
+            }
+            if (!yawChosen) {
+                profile.currentYaw = kotlin.random.Random.nextDouble() * 360.0
+            }
         }
     }
 

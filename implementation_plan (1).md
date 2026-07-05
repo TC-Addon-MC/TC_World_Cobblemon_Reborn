@@ -127,22 +127,6 @@ flight/CustomFlightRegistry.kt
 flight/CustomFlightInit.kt
 ```
 
-## Bảng Tổng Kết Thay Đổi File
-
-| Hành động | Đường dẫn |
-|---|---|
-| XÓA | `flight/directed/DirectedFlightState.kt` |
-| XÓA | `flight/directed/DirectedFlightSession.kt` |
-| XÓA | `flight/directed/DirectedFlightBehaviors.kt` |
-| XÓA | `flight/directed/DirectedFlightManager.kt` |
-| XÓA | `flight/normal/NormalFlightBehaviors.kt` |
-| XÓA folder (nếu rỗng) | `flight/directed/`, `flight/normal/` |
-| TẠO MỚI | `flight/engine/FlightEngine.kt` (có thể tách `flight/engine/FlightSession.kt`) |
-| TẠO MỚI | `flight/ai/NormalFlightAI.kt` |
-| ĐỔI TÊN + SỬA | `flight/CustomFlightStateMachine.kt` → `flight/NormalFlightStateMachine.kt` |
-| SỬA NỘI DUNG | `flight/FlightConfig.kt` |
-| SỬA NỘI DUNG | `flight/CustomFlightManager.kt` |
-| GIỮ NGUYÊN | `FlightState.kt`, `FlightHelpers.kt`, `BaseFlightSession.kt`, `CustomFlightProfile.kt`, `CustomFlightRegistry.kt`, `CustomFlightInit.kt` |
 
 ## Ràng Buộc Bắt Buộc Khi Thực Thi
 

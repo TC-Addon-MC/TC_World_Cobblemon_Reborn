@@ -15,23 +15,42 @@ object NormalFlightAI {
         FlightHelpers.restoreAI(pokemon as net.minecraft.world.entity.Mob)
     }
 
-    // Cất cánh: gọi flyTo mỗi tick với target bay lên theo yaw hiện tại; trả true khi đủ cao
+    private fun easeInOutQuad(t: Double) = if (t < 0.5) 2 * t * t else -1 + (4 - 2 * t) * t
+
+    // Cất cánh: sử dụng cơ chế Damping + Easing + Particle Effects
     fun tickTakingOff(pokemon: PokemonEntity, profile: CustomFlightProfile, tick: Int): Boolean {
         val mob = pokemon as net.minecraft.world.entity.Mob
+        val config = profile.config
+        val takeoffDuration = config.takeoffDuration
+        
+        if (profile.ticksInCurrentState == 1) {
+            // Thêm chút lực nảy nhẹ ban đầu
+            mob.deltaMovement = mob.deltaMovement.add(0.0, 0.2, 0.0)
+        }
+        
+        val progress = (profile.ticksInCurrentState.toDouble() / takeoffDuration).coerceIn(0.0, 1.0)
+        val easedProgress = easeInOutQuad(progress) * config.takeoffAcceleration
+        
         val radians = Math.toRadians(profile.currentYaw)
         val dirX = -sin(radians)
         val dirZ = cos(radians)
         val groundY = FlightHelpers.estimateGroundY(mob)
         val targetY = groundY + profile.currentPreferredHeight
-
+        
+        // Tạo tốc độ tăng dần theo easedProgress (min 10% speed)
+        val currentSpeed = config.flightSpeed * (0.1 + easedProgress * 0.9)
+        
+        // Gọi FlightEngine.flyTo để tạo session và quản lý vật lý, lerp
         FlightEngine.flyTo(
             pokemon = pokemon,
             target = Vec3(mob.x + dirX * 5.0, targetY, mob.z + dirZ * 5.0),
             hover = false,
-            config = profile.config
+            config = profile.config.copy(flightSpeed = currentSpeed)
         )
-
-        return (mob.y - groundY) >= profile.currentPreferredHeight * 0.8
+        
+        FlightHelpers.spawnTakeoffParticles(mob.level(), mob, progress, profile.takeoffParticleStyle)
+        
+        return progress >= 0.95 || (mob.y - groundY) >= profile.currentPreferredHeight * 0.8
     }
 
     // Bay tự nhiên: cập nhật hướng theo interval, gọi flyTo mỗi tick với target ảo phía trước
@@ -47,7 +66,19 @@ object NormalFlightAI {
         val dirZ = cos(radians)
         val groundY = FlightHelpers.estimateGroundY(mob)
         val sinSway = sin(tick * 0.02 + mob.id * 0.3) * profile.config.verticalSway
-        val targetY = groundY + profile.currentPreferredHeight + sinSway
+        
+        // Dự phòng: check 2 block dưới chân, nếu có block thì bay cao thêm 5 block
+        var extraHeight = 0.0
+        val level = mob.level()
+        for (i in 1..2) {
+            val checkPos = net.minecraft.core.BlockPos(mob.x.toInt(), mob.y.toInt() - i, mob.z.toInt())
+            if (!level.getBlockState(checkPos).isAir) {
+                extraHeight = 5.0
+                break
+            }
+        }
+        
+        val targetY = groundY + profile.currentPreferredHeight + sinSway + extraHeight
 
         FlightEngine.flyTo(
             pokemon = pokemon,
@@ -133,21 +164,17 @@ object NormalFlightAI {
 
     fun tickCircularFlying(pokemon: PokemonEntity, profile: CustomFlightProfile, tick: Int) {
         val mob = pokemon as net.minecraft.world.entity.Mob
-        val radius = kotlin.math.max(5.0, profile.config.circularFlightRadius)
-        val speed = profile.config.flightSpeed * 10.0 // Ước tính vận tốc thực tế
+        val radius = profile.config.circularFlightRadius
+        val speed = profile.config.flightSpeed // Vận tốc thực tế mà FlightEngine đang dùng
 
         if (profile.ticksInCurrentState <= 1 || profile.circularFlightCenter == null) {
-            // Xác định tâm hình tròn nằm phía trước bên phải Pokemon
-            val radians = Math.toRadians(profile.currentYaw)
-            val dirX = -sin(radians)
-            val dirZ = cos(radians)
-            
             val groundY = FlightHelpers.estimateGroundY(mob)
-            val targetY = groundY + profile.currentPreferredHeight
+            // Lấy độ cao cao nhất giữa mặt đất tại tâm và anchor
+            val targetY = Math.max(profile.anchorY, groundY + profile.currentPreferredHeight)
             
-            // Tâm cách xa 1 bán kính
-            profile.circularFlightCenter = Vec3(mob.x + dirX * radius, targetY, mob.z + dirZ * radius)
-            // Tính góc xuất phát (vuông góc với hướng ban đầu)
+            // Chốt điểm spawn (anchor) làm tâm xoay
+            profile.circularFlightCenter = Vec3(profile.anchorX, targetY, profile.anchorZ)
+            // Tính góc xuất phát
             profile.circularFlightAngle = Math.atan2(mob.z - profile.circularFlightCenter!!.z, mob.x - profile.circularFlightCenter!!.x)
         }
 
@@ -156,16 +183,30 @@ object NormalFlightAI {
         // Tính góc hiện tại của Pokemon so với tâm
         val currentAngle = Math.atan2(mob.z - center.z, mob.x - center.x)
         
-        // Mục tiêu luôn nằm phía trước trên đường tròn một góc nhỏ (giúp Pokemon tự động uốn lượn mượt mà)
+        // Loại bỏ việc phóng đại tốc độ (*10.0 cũ) để góc nhìn bám sát thực tế hơn.
+        // Góc lookahead tối thiểu là 0.3 rad (~17 độ) để đảm bảo khoảng cách mục tiêu > 2.0 block (tránh arriveThreshold)
+        // nhưng vẫn đủ nhỏ để vector vận tốc gần như tiếp tuyến, giúp đầu Pokemon hướng về phía trước tự nhiên.
         val angularSpeed = speed / radius
-        val targetAngle = currentAngle + angularSpeed * 1.5 // Nhắm tới điểm cách khoảng 1.5 lần góc di chuyển mỗi tick
+        val targetAngle = currentAngle + Math.max(angularSpeed * 1.5, 0.3)
         
         val targetX = center.x + radius * cos(targetAngle)
         val targetZ = center.z + radius * sin(targetAngle)
         
         // Sway độ cao nhẹ để lượn cho tự nhiên (chỉnh chậm lại cho giống bay thẳng)
         val sinSway = sin(tick * 0.02 + mob.id * 0.3) * profile.config.verticalSway
-        val targetY = center.y + sinSway
+        
+        // Dự phòng: check 2 block dưới chân, nếu có block thì bay cao thêm 5 block
+        var extraHeight = 0.0
+        val level = mob.level()
+        for (i in 1..2) {
+            val checkPos = net.minecraft.core.BlockPos(mob.x.toInt(), mob.y.toInt() - i, mob.z.toInt())
+            if (!level.getBlockState(checkPos).isAir) {
+                extraHeight = 5.0
+                break
+            }
+        }
+        
+        val targetY = center.y + sinSway + extraHeight
 
         FlightEngine.flyTo(
             pokemon = pokemon,

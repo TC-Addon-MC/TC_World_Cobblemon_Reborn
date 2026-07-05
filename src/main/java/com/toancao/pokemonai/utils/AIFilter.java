@@ -25,14 +25,21 @@ public class AIFilter {
         if (pokemonEntity.isBusy()) return false;
         if (pokemonEntity.isVehicle()) return false;
 
-        // 4. Không đang đánh nhau hoặc bị tấn công gần đây
+        // 4. Không đang đánh nhau (đã target)
         if (pokemonEntity.getTarget() != null) return false;
-        if (pokemonEntity.getLastHurtByMob() != null && pokemonEntity.tickCount - pokemonEntity.getLastHurtByMobTimestamp() < 300) {
-            return false; // Chờ 15 giây (300 tick) sau khi bị đánh
+
+        // 5. Tích hợp Fight or Flight (nếu có cài mod)
+        if (com.toancao.pokemonai.compat.FightOrFlightCompat.isEngaged(pokemonEntity)) {
+            return false;
         }
 
-        // 5. Entity phải tồn tại trong world hợp lệ
+        // 6. Entity phải tồn tại trong world hợp lệ
         if (pokemonEntity.level() == null) return false;
+
+        // 7. Mod khác có muốn chặn AI không?
+        if (!com.toancao.pokemonai.api.PokemonAIEvents.ON_AI_FILTER_CHECK.invoker().onAIFilterCheck(pokemonEntity)) {
+            return false;
+        }
 
         return true;
     }

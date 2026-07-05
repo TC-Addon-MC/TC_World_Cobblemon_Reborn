@@ -1,7 +1,10 @@
 package com.toancao.pokemonai.flight.engine
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
+import com.toancao.pokemonai.flight.CustomFlightManager
+import com.toancao.pokemonai.flight.CustomFlightProfile
 import com.toancao.pokemonai.flight.FlightConfig
+
 import com.toancao.pokemonai.flight.FlightHelpers
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.world.entity.MoverType
@@ -27,7 +30,13 @@ object FlightEngine {
                     if (session.state == InternalFlightState.DONE) toRemove.add(uuid)
                 }
             }
-            toRemove.forEach { activeSessions.remove(it) }
+            toRemove.forEach { 
+                val session = activeSessions[it]
+                if (session != null) {
+                    com.toancao.pokemonai.api.PokemonAIEvents.FLIGHT_END.invoker().onFlightEnd(session.pokemon)
+                }
+                activeSessions.remove(it) 
+            }
         }
     }
 
@@ -36,7 +45,7 @@ object FlightEngine {
         target: Vec3,
         hover: Boolean = false,
         config: FlightConfig = FlightConfig()
-    ) {
+    ): Boolean {
         val existingSession = activeSessions[pokemon.uuid]
         if (existingSession != null) {
             existingSession.target = target
@@ -44,10 +53,13 @@ object FlightEngine {
             existingSession.config = config
             existingSession.state = InternalFlightState.FLYING
         } else {
+            val allow = com.toancao.pokemonai.api.PokemonAIEvents.FLIGHT_START.invoker().onFlightStart(pokemon, target, hover)
+            if (!allow) return false
             val mob = pokemon as net.minecraft.world.entity.Mob
             mob.deltaMovement = Vec3.ZERO
             activeSessions[pokemon.uuid] = FlightSession(pokemon, target, hover, config)
         }
+        return true
     }
 
     // Lệnh ép hạ cánh mượt mà xuống mặt đất
@@ -90,7 +102,10 @@ object FlightEngine {
 
     // Dừng bay ngay, trả về vật lý tự nhiên
     fun stopFlight(pokemon: PokemonEntity) {
-        activeSessions.remove(pokemon.uuid)
+        val session = activeSessions.remove(pokemon.uuid)
+        if (session != null) {
+            com.toancao.pokemonai.api.PokemonAIEvents.FLIGHT_END.invoker().onFlightEnd(pokemon)
+        }
         FlightHelpers.terminateFlight(pokemon)
     }
 
@@ -106,7 +121,8 @@ object FlightEngine {
 
         // ── Bước 1: Kiểm tra điều kiện rớt/dừng ────────────────────────────
         if (p.dropOnHit && mob.hurtTime > 0) {
-            terminateSession(session)
+            // Thay vì rớt như cục đá, ép hạ cánh khẩn cấp xuống đất
+            land(session.pokemon, p, avoidWater = false)
             return
         }
 
@@ -249,9 +265,11 @@ object FlightEngine {
     private fun resolveSpeed(mob: net.minecraft.world.entity.Mob, session: FlightSession): Double {
         var speed = session.config.flightSpeed
         if (session.config.speedPlayerScale) {
-            val dist = FlightHelpers.nearestPlayerDistance(mob)
-            // Nếu dist < 0 (không có ai trong 128 block), coi như xa tối đa -> ratio = 1.0
-            val ratio = if (dist < 0.0) 1.0 else (dist / 128.0).coerceIn(0.0, 1.0)
+            val machine = CustomFlightManager.getMachine(mob.uuid)
+            val dist = machine?.nearestDistance ?: Double.MAX_VALUE
+            
+            // Nếu dist quá lớn (lớn hơn 128 block hoặc không có player), coi như xa tối đa -> ratio = 1.0
+            val ratio = if (dist >= 128.0) 1.0 else (dist / 128.0).coerceIn(0.0, 1.0)
             // Giảm tối đa 70% tốc độ (nhân với 0.3) khi ở xa
             speed *= (1.0 - ratio * 0.7)
         }
