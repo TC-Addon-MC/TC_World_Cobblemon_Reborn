@@ -34,15 +34,17 @@ public class FightOrFlightCompat {
                 if (target != null) {
                     if (target instanceof java.util.Optional<?> opt) {
                         if (opt.isPresent()) return true;
-                    } else {
+                    } else if (target instanceof net.minecraft.world.entity.Entity) {
                         return true;
                     }
+                    // Bỏ qua các kiểu trả về khác (ví dụ Boolean) để không bị lỗi return true liên tục
                 }
             }
-            if (shouldFightTargetMethod != null) {
-                Object shouldFight = shouldFightTargetMethod.invoke(null, pokemon);
-                if (shouldFight instanceof Boolean b && b) return true;
-            }
+            // Tạm thời bỏ qua shouldFightTarget vì hàm này có thể chỉ dùng để check xem loài đó có tính hiếu chiến không (luôn true với thú dữ)
+            // if (shouldFightTargetMethod != null) {
+            //     Object shouldFight = shouldFightTargetMethod.invoke(null, pokemon);
+            //     if (shouldFight instanceof Boolean b && b) return true;
+            // }
         } catch (Throwable e) {
             // Ignore reflection errors during runtime
         }

@@ -101,9 +101,10 @@ class NormalFlightStateMachine(
         
         // Nếu không đủ điều kiện (đang ngủ, bị thu phục, v.v.)
         if (!isEligible) {
-            // Khẩn cấp: Nếu đang đánh nhau hoặc có mục tiêu (từ mod khác), phải NHẢ AI NGAY LẬP TỨC!
-            // Không được dùng hạ cánh từ từ (LANDING) vì nó sẽ ghi đè di chuyển của việc tấn công.
-            if (pokemon.target != null || pokemon.battleId != null) {
+            // Khẩn cấp: Nếu đang đánh nhau, có mục tiêu, hoặc ĐANG NGỦ (bất tỉnh), phải NHẢ AI NGAY LẬP TỨC!
+            // Không được dùng hạ cánh từ từ (LANDING) vì nó sẽ ghi đè trạng thái ngủ hoặc di chuyển tấn công.
+            if (pokemon.target != null || pokemon.battleId != null || pokemon.isSleeping) {
+                com.toancao.pokemonai.flight.engine.FlightEngine.stopFlight(pokemon)
                 transitionTo(FlightState.GROUNDED)
                 com.toancao.pokemonai.compat.CobblemonBridge.setFlyingFlag(pokemon, false)
                 return
