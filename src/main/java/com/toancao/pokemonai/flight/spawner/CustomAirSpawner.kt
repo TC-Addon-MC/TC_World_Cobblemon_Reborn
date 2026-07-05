@@ -43,8 +43,8 @@ object CustomAirSpawner {
         val targetZ: Int
         val spawnYaw: Float
 
-        // Lấy view distance (tính theo block) của người chơi hiện tại
-        val maxViewBlocks = (player.server.playerList.viewDistance * 16).toDouble()
+        // Lấy spawn radius từ config của mod mình
+        val maxViewBlocks = com.toancao.pokemonai.config.FlightConfigManager.airSpawnRadius
 
         if (isSpawnBehind) {
             val yaw = Math.toRadians(player.yRot.toDouble())
@@ -239,11 +239,12 @@ object CustomAirSpawner {
             pokemon.level = kotlin.random.Random.nextInt(finalMin, finalMax + 1)
             
             val entity = PokemonEntity(level, pokemon)
-            entity.setPos(airPos.x + 0.5, airPos.y + 1.0, airPos.z + 0.5)
+            entity.setPos(airPos.x + 0.5, airPos.y + 1.5, airPos.z + 0.5)
             // Thiết lập hướng bay cho Pokemon
             entity.yRot = spawnYaw
             entity.yBodyRot = spawnYaw
             entity.yHeadRot = spawnYaw
+            (entity as net.minecraft.world.entity.Mob).isNoGravity = true
             
             if (level.addFreshEntity(entity)) {
                 // Spawn cloud: tăng stamina gấp đôi, giảm tốc độ một nửa.
@@ -285,7 +286,8 @@ object CustomAirSpawner {
         if (level.getBlockState(pos).isAir) {
             level.setBlockAndUpdate(pos, BlockRegistry.CLOUD_BLOCK.defaultBlockState())
             val entity = PokemonEntity(level, pokemon)
-            entity.setPos(pos.x + 0.5, pos.y + 1.0, pos.z + 0.5)
+            entity.setPos(pos.x + 0.5, pos.y + 1.5, pos.z + 0.5)
+            (entity as net.minecraft.world.entity.Mob).isNoGravity = true
             
             if (level.addFreshEntity(entity)) {
                 val customCloudConfig = flightConfig.copy(

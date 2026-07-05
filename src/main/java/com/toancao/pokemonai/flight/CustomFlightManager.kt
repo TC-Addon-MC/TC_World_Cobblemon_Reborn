@@ -62,8 +62,10 @@ object CustomFlightManager {
                             val configs = CustomFlightRegistry.getConfigs(speciesId)!!
                             val config = configs.random()
                             
-                            // Pokemon mới được load/phát hiện -> khởi tạo ở trạng thái đang đậu/nghỉ ngơi
-                            val machine = NormalFlightStateMachine(entity, FlightState.PERCHING, config)
+                            // Pokemon mới được load/phát hiện -> kiểm tra xem có đang ở trên không không
+                            val isHighUp = !entity.onGround() && !entity.isInWater && !entity.isUnderWater
+                            val initialState = if (isHighUp) FlightState.FLYING else FlightState.PERCHING
+                            val machine = NormalFlightStateMachine(entity, initialState, config)
                             machine.markPlayerSeen()
                             activeMachines[uuid] = machine
                         }

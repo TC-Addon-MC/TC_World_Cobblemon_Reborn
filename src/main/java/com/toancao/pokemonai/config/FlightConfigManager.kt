@@ -17,6 +17,7 @@ data class RootFlightConfig(
     var machineUnloadDelay: Int = 200,
     var airSpawnChance: Double = 0.8,
     var airSpawnInterval: Int = 60,
+    var airSpawnRadius: Double = 64.0,
     var pokemon_assignments: MutableMap<String, String> = mutableMapOf(),
     var flight_presets: MutableMap<String, FlightConfig> = mutableMapOf()
 )
@@ -38,6 +39,8 @@ object FlightConfigManager {
     var airSpawnChance: Double = 0.8
         private set
     var airSpawnInterval: Int = 60
+        private set
+    var airSpawnRadius: Double = 64.0
         private set
 
     val pokemonFlightConfigs: Map<String, FlightConfig>
@@ -68,6 +71,7 @@ object FlightConfigManager {
                     machineUnloadDelay = rootConfig.machineUnloadDelay
                     airSpawnChance = rootConfig.airSpawnChance
                     airSpawnInterval = rootConfig.airSpawnInterval
+                    airSpawnRadius = rootConfig.airSpawnRadius
                     
                     // Đắp thêm các pokemon mặc định nếu thiếu
                     val defaultAssignments = mutableMapOf<String, String>()
@@ -215,6 +219,7 @@ object FlightConfigManager {
                 machineUnloadDelay = machineUnloadDelay,
                 airSpawnChance = airSpawnChance,
                 airSpawnInterval = airSpawnInterval,
+                airSpawnRadius = airSpawnRadius,
                 pokemon_assignments = pokemonAssignments,
                 flight_presets = flightPresets
             )
