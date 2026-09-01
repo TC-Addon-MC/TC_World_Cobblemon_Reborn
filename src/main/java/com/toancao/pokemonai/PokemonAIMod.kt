@@ -19,6 +19,7 @@ object PokemonAIMod : ModInitializer {
 
         // Load configs
         com.toancao.pokemonai.config.MagikarpConfigManager.loadConfig()
+        com.toancao.pokemonai.config.HerdConfigManager.loadConfig()
 
         // Register attachments
         PokemonAttachments.register()
@@ -88,8 +89,24 @@ object PokemonAIMod : ModInitializer {
             MagikarpRageRule()
         ))
 
+        // Register Tauros Pack & Behaviors
+        BehaviorRegistry.register(com.toancao.pokemonai.pokemon.TaurosConfig.SPECIES, com.toancao.pokemonai.pokemon.TaurosConfig.behaviors)
+        com.toancao.pokemonai.spawner.PackSpawnRegistry.register(com.toancao.pokemonai.pokemon.TaurosConfig.SPECIES) { level, pos ->
+            com.toancao.pokemonai.pokemon.TaurosConfig.createPackParams(level, pos)
+        }
 
-        
+        // Register Bouffalant Pack & Behaviors (Song song với Tauros)
+        BehaviorRegistry.register(com.toancao.pokemonai.pokemon.BouffalantConfig.SPECIES, com.toancao.pokemonai.pokemon.BouffalantConfig.behaviors)
+        com.toancao.pokemonai.spawner.PackSpawnRegistry.register(com.toancao.pokemonai.pokemon.BouffalantConfig.SPECIES) { level, pos ->
+            com.toancao.pokemonai.pokemon.BouffalantConfig.createPackParams(level, pos)
+        }
+
+        // Register Natural Pack Spawning Hook
+        com.toancao.pokemonai.spawner.hooks.CobblemonNaturalSpawnHook.register()
+
+        // Register Herd Aggro Events (Tấn công & Bắt bóng thất bại kích hoạt phẫn nộ)
+        com.toancao.pokemonai.behaviors.herd.HerdAggroEventHandler.register()
+
         logger.info("Pokemon AI Addon Initialized successfully.")
     }
 }

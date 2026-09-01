@@ -130,4 +130,9 @@ public class CobblemonBridge {
     public static void setFlyingFlag(PokemonEntity entity, boolean value) {
         entity.setBehaviourFlag(com.cobblemon.mod.common.entity.pokemon.PokemonBehaviourFlag.FLYING, value);
     }
+
+    public static boolean isBattling(PokemonEntity entity) {
+        if (entity == null) return false;
+        return entity.getBattleId() != null;
+    }
 }

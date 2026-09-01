@@ -6,6 +6,13 @@ import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands
 import net.minecraft.network.chat.Component
 import com.toancao.pokemonai.compat.CobblemonBridge
+import com.toancao.pokemonai.spawner.hierarchy.getHerdData
+import com.toancao.pokemonai.spawner.hierarchy.setHerdData
+import com.toancao.pokemonai.spawner.hierarchy.isBattling
+import com.toancao.pokemonai.spawner.hierarchy.HerdRole
+import com.toancao.pokemonai.spawner.GenericPackSpawner
+import com.toancao.pokemonai.spawner.PackSpawnRegistry
+import com.toancao.pokemonai.pokemon.TaurosConfig
 
 object DebugCommands {
     fun register() {
@@ -23,6 +30,7 @@ object DebugCommands {
         registerFlyCommand(root)
         registerFlyCancelCommand(root)
         registerSpawnAirCommand(root)
+        registerPackCommand(root)
 
         dispatcher.register(root)
     }
@@ -355,5 +363,364 @@ object DebugCommands {
         }
         context.source.sendSuccess({ Component.translatable("command.tc_reborn.action.executed", actionName, count, pokemonName) }, true)
         return count
+    }
+
+    private fun registerPackCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("pack")
+                .then(
+                    Commands.literal("spawn")
+                        .then(
+                            Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                .suggests { _, builder ->
+                                    builder.suggest("tauros")
+                                    builder.suggest("bouffalant")
+                                    builder.buildFuture()
+                                }
+                                .executes { ctx ->
+                                    val species = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "species")
+                                    executePackSpawn(ctx.source, species, null)
+                                }
+                                .then(
+                                    Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(2, 30))
+                                        .executes { ctx ->
+                                            val species = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "species")
+                                            val count = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count")
+                                            executePackSpawn(ctx.source, species, count)
+                                        }
+                                )
+                        )
+                )
+                .then(
+                    Commands.literal("info").executes { ctx ->
+                        executePackInfo(ctx.source)
+                    }
+                )
+                .then(
+                    Commands.literal("list").executes { ctx ->
+                        executePackList(ctx.source)
+                    }
+                )
+                .then(
+                    Commands.literal("leave").executes { ctx ->
+                        executePackLeave(ctx.source)
+                    }
+                )
+                .then(
+                    Commands.literal("join").executes { ctx ->
+                        executePackJoin(ctx.source)
+                    }
+                )
+                .then(
+                    Commands.literal("toggle").executes { ctx ->
+                        executePackToggle(ctx.source)
+                    }
+                )
+                .then(
+                    Commands.literal("names").executes { ctx ->
+                        executePackNames(ctx.source)
+                    }
+                )
+                .then(
+                    Commands.literal("test")
+                        .then(Commands.literal("clash").executes { executeTestClash(it.source) })
+                        .then(Commands.literal("charge").executes { executeTestCharge(it.source) })
+                        .then(Commands.literal("kill_leader").executes { executeTestKillLeader(it.source) })
+                        .then(Commands.literal("aggro").executes { executeTestAggro(it.source) })
+                )
+        )
+    }
+
+    private fun executePackSpawn(source: CommandSourceStack, species: String, count: Int?): Int {
+        val player = source.player ?: run {
+            source.sendFailure(Component.literal("§cChỉ người chơi mới có thể dùng lệnh này!"))
+            return 0
+        }
+        val level = player.serverLevel()
+        val factory = com.toancao.pokemonai.spawner.PackSpawnRegistry.getFactory(species)
+        if (factory == null) {
+            source.sendFailure(Component.literal("§cLoài '$species' chưa được đăng ký trong PackSpawnRegistry!"))
+            return 0
+        }
+
+        val params = if (count != null && species.equals("tauros", ignoreCase = true)) {
+            com.toancao.pokemonai.pokemon.TaurosConfig.createPackParams(level, player.position(), count)
+        } else if (count != null && species.equals("bouffalant", ignoreCase = true)) {
+            com.toancao.pokemonai.pokemon.BouffalantConfig.createPackParams(level, player.position(), count)
+        } else {
+            factory(level, player.position())
+        }
+
+        val result = com.toancao.pokemonai.spawner.GenericPackSpawner.spawnPokemonPack(params)
+        if (result != null) {
+            source.sendSuccess({
+                Component.literal("§a[Pack] Sinh đàn §e$species§a thành công! Tổng số: §e${result.totalSpawned}§a con (Herd ID: §7${result.herdId}§a)")
+            }, true)
+            return 1
+        } else {
+            source.sendFailure(Component.literal("§cKhông thể sinh đàn (có thể do chạm trần chunk limit hoặc vị trí không hợp lệ)."))
+            return 0
+        }
+    }
+
+    private fun executePackInfo(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val level = player.serverLevel()
+        val eyePos = player.eyePosition
+        val lookVec = player.lookAngle.scale(8.0)
+        val searchBox = player.boundingBox.expandTowards(lookVec).inflate(2.0)
+
+        val target = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, searchBox) {
+            it != player
+        }.minByOrNull { it.distanceToSqr(player) }
+
+        if (target == null) {
+            source.sendFailure(Component.literal("§cKhông tìm thấy Pokémon nào trong tầm nhìn (phạm vi 8 block)."))
+            return 0
+        }
+
+        val herdData = target.getHerdData()
+        val species = CobblemonBridge.getSpeciesName(target)
+        val levelVal = target.pokemon.level
+        val scaleVal = target.attributes.getInstance(net.minecraft.world.entity.ai.attributes.Attributes.SCALE)?.value ?: 1.0
+
+        source.sendSuccess({
+            Component.literal("§6========== THÔNG TIN BẦY ĐÀN ==========\n" +
+                    "§eLoài: §f$species (Lv $levelVal)\n" +
+                    "§eScale: §f${String.format("%.2f", scaleVal)}x\n" +
+                    "§eVai trò: §a${if (herdData.isLeader) "👑 ĐẦU ĐÀN (Leader)" else "🐂 ĐÀN EM (Member)"}\n" +
+                    "§eHerd ID: §7${herdData.herdId ?: "Không có (Đơn lẻ)"}\n" +
+                    "§eLeader UUID: §7${herdData.leaderUUID ?: "None"}\n" +
+                    "§eFormation Index: §f${herdData.formationIndex}\n" +
+                    "§eIs Battling: §f${target.isBattling}\n" +
+                    "§6========================================")
+        }, false)
+        return 1
+    }
+
+    private fun executePackList(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val level = player.serverLevel()
+        val box = net.minecraft.world.phys.AABB.ofSize(player.position(), 128.0, 64.0, 128.0)
+
+        val pokemonList = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
+            it.getHerdData().isInHerd
+        }
+
+        val grouped = pokemonList.groupBy { it.getHerdData().herdId }
+        if (grouped.isEmpty()) {
+            source.sendSuccess({ Component.literal("§eKhông có bầy đàn nào đang hoạt động trong bán kính 64 block.") }, false)
+            return 0
+        }
+
+        source.sendSuccess({
+            val sb = StringBuilder("§6=== DANH SÁCH BẦY ĐÀN TRONG 64 BLOCK (${grouped.size} đàn) ===\n")
+            for ((herdId, members) in grouped) {
+                val leader = members.firstOrNull { it.getHerdData().isLeader }
+                val leaderPosStr = leader?.let { "[${it.blockX}, ${it.blockY}, ${it.blockZ}]" } ?: "Mất tích"
+                sb.append("§e- Herd §7${herdId?.toString()?.substring(0, 8)}...§e: §f${members.size} con §a(Thủ lĩnh tại: $leaderPosStr)\n")
+            }
+            Component.literal(sb.toString().trimEnd())
+        }, false)
+        return grouped.size
+    }
+
+    private fun executeTestClash(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val level = player.serverLevel()
+        val box = net.minecraft.world.phys.AABB.ofSize(player.position(), 24.0, 12.0, 24.0)
+
+        val taurosList = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
+            CobblemonBridge.getSpeciesName(it) == "tauros"
+        }
+
+        if (taurosList.size < 2) {
+            source.sendFailure(Component.literal("§cCần ít nhất 2 con Tauros ở gần (bán kính 12 block) để test đấu sừng!"))
+            return 0
+        }
+
+        val first = taurosList[0]
+        val second = taurosList[1]
+        first.lookControl.setLookAt(second, 30f, 30f)
+        second.lookControl.setLookAt(first, 30f, 30f)
+
+        source.sendSuccess({ Component.literal("§aĐã kích hoạt ép đấu sừng giữa 2 con Tauros gần nhất!") }, true)
+        return 1
+    }
+
+    private fun executeTestCharge(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val level = player.serverLevel()
+        val box = net.minecraft.world.phys.AABB.ofSize(player.position(), 24.0, 12.0, 24.0)
+
+        val tauros = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
+            CobblemonBridge.getSpeciesName(it) == "tauros"
+        }.minByOrNull { it.distanceToSqr(player) }
+
+        if (tauros == null) {
+            source.sendFailure(Component.literal("§cKhông tìm thấy con Tauros nào trong bán kính 12 block để test húc!"))
+            return 0
+        }
+
+        tauros.target = player
+        source.sendSuccess({ Component.literal("§aĐã kích hoạt Tauros lấy đà lao húc về phía bạn!") }, true)
+        return 1
+    }
+
+    private fun executeTestKillLeader(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val level = player.serverLevel()
+        val box = net.minecraft.world.phys.AABB.ofSize(player.position(), 32.0, 16.0, 32.0)
+
+        val leader = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
+            it.getHerdData().isAlpha
+        }.minByOrNull { it.distanceToSqr(player) }
+
+        if (leader == null) {
+            source.sendFailure(Component.literal("§cKhông tìm thấy Alpha Leader nào trong bán kính 16 block!"))
+            return 0
+        }
+
+        leader.discard()
+        source.sendSuccess({ Component.literal("§cĐã loại bỏ Alpha Leader! Hãy quan sát đàn tự động thăng chức con mới lên thay thế.") }, true)
+        return 1
+    }
+
+    private fun executeTestAggro(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val level = player.serverLevel()
+        val box = net.minecraft.world.phys.AABB.ofSize(player.position(), 48.0, 24.0, 48.0)
+
+        val taurosList = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
+            CobblemonBridge.getSpeciesName(it) == "tauros"
+        }
+
+        if (taurosList.isEmpty()) {
+            source.sendFailure(Component.literal("§cKhông tìm thấy đàn Tauros nào trong bán kính 24 block!"))
+            return 0
+        }
+
+        val firstTauros = taurosList.first()
+        val herdId = firstTauros.getHerdData().herdId
+        if (herdId != null) {
+            // Phát động Đại Xung Phong (Stampede) KHÓA HƯỚNG nhìn của người chơi cho toàn bầy
+            val lookDir = player.lookAngle
+            com.toancao.pokemonai.behaviors.combat.HerdSharedAggroGoal.triggerHerdStampedeDirection(
+                level, herdId, firstTauros.position(), lookDir, box
+            )
+            source.sendSuccess({ Component.literal("§c[STAMPEDE] Đã khóa hướng và phát động Đại Xung Phong toàn bầy Tauros chạy song song 40 block!") }, true)
+        } else {
+            firstTauros.target = player
+            source.sendSuccess({ Component.literal("§aĐã kích hoạt mục tiêu tấn công cho Tauros đơn lẻ!") }, true)
+        }
+        return 1
+    }
+
+    private fun executePackLeave(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val target = getLookTargetPokemon(player) ?: run {
+            source.sendFailure(Component.literal("§cKhông tìm thấy Pokémon nào trong tầm nhìn!"))
+            return 0
+        }
+
+        val data = target.getHerdData()
+        if (!data.isInHerd) {
+            source.sendFailure(Component.literal("§eCon Pokémon này vốn đã là cá thể tự do độc lập (không thuộc đàn nào)."))
+            return 0
+        }
+
+        data.herdId = null
+        data.role = HerdRole.MEMBER
+        data.leaderUUID = null
+        data.isStampeding = false
+        target.setHerdData(data)
+
+        source.sendSuccess({ Component.literal("§a[Pack] Đã TÁCH con Pokémon này ra khỏi bầy đàn! Nó hiện là cá thể tự do độc lập.") }, true)
+        return 1
+    }
+
+    private fun executePackJoin(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val target = getLookTargetPokemon(player) ?: run {
+            source.sendFailure(Component.literal("§cKhông tìm thấy Pokémon nào trong tầm nhìn!"))
+            return 0
+        }
+
+        val level = player.serverLevel()
+        val box = net.minecraft.world.phys.AABB.ofSize(target.position(), 48.0, 24.0, 48.0)
+        val nearbyLeader = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
+            it != target && it.getHerdData().isAlpha
+        }.firstOrNull()
+
+        if (nearbyLeader == null) {
+            source.sendFailure(Component.literal("§cKhông tìm thấy bầy đàn nào có Alpha Leader ở gần trong bán kính 24 block!"))
+            return 0
+        }
+
+        val leaderData = nearbyLeader.getHerdData()
+        val data = target.getHerdData()
+        data.herdId = leaderData.herdId
+        data.leaderUUID = nearbyLeader.uuid
+        data.role = HerdRole.MEMBER
+        data.formationIndex = level.random.nextInt(1, 12)
+        target.setHerdData(data)
+
+        source.sendSuccess({ Component.literal("§a[Pack] Đã GIA NHẬP con Pokémon này vào bầy đàn của thủ lĩnh gần nhất!") }, true)
+        return 1
+    }
+
+    private fun executePackToggle(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val target = getLookTargetPokemon(player) ?: run {
+            source.sendFailure(Component.literal("§cKhông tìm thấy Pokémon nào trong tầm nhìn!"))
+            return 0
+        }
+
+        val data = target.getHerdData()
+        if (data.isInHerd) {
+            return executePackLeave(source)
+        } else {
+            return executePackJoin(source)
+        }
+    }
+
+    private fun getLookTargetPokemon(player: net.minecraft.server.level.ServerPlayer): com.cobblemon.mod.common.entity.pokemon.PokemonEntity? {
+        val level = player.serverLevel()
+        val lookVec = player.lookAngle.scale(8.0)
+        val searchBox = player.boundingBox.expandTowards(lookVec).inflate(2.0)
+        return level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, searchBox) {
+            it != player
+        }.minByOrNull { it.distanceToSqr(player) }
+    }
+
+    private fun executePackNames(source: CommandSourceStack): Int {
+        val player = source.player ?: return 0
+        val level = player.serverLevel()
+        val box = net.minecraft.world.phys.AABB.ofSize(player.position(), 128.0, 64.0, 128.0)
+
+        val packEntities = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
+            it.getHerdData().isInHerd
+        }
+
+        if (packEntities.isEmpty()) {
+            source.sendFailure(Component.literal("§cKhông tìm thấy Pokémon bầy đàn nào trong bán kính 64 block!"))
+            return 0
+        }
+
+        var updatedCount = 0
+        for (poke in packEntities) {
+            val data = poke.getHerdData()
+            if (data.isLeader) {
+                poke.customName = Component.literal("§6👑 [ĐẦU ĐÀN]")
+                poke.isCustomNameVisible = true
+            } else {
+                poke.customName = Component.literal("§a🐂 [ĐÀN EM #${data.formationIndex}]")
+                poke.isCustomNameVisible = true
+            }
+            updatedCount++
+        }
+
+        source.sendSuccess({ Component.literal("§a[Pack] Đã hiển thị NameTag chữ '§6👑 [ĐẦU ĐÀN]§a' và '§a🐂 [ĐÀN EM]§a' cho §e$updatedCount§a Pokémon!") }, true)
+        return updatedCount
     }
 }

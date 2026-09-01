@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:dirt",
+    "#minecraft:sand",
+    "#minecraft:planks",
+    "#minecraft:wooden_fences",
+    "#minecraft:leaves",
+    "minecraft:stone",
+    "minecraft:cobblestone",
+    "minecraft:mossy_cobblestone",
+    "minecraft:sandstone",
+    "minecraft:diorite",
+    "minecraft:andesite",
+    "minecraft:granite",
+    "minecraft:bamboo"
+  ]
+}
