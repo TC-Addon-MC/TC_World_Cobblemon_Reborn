@@ -2,7 +2,6 @@ package com.toancao.pokemonai.behaviors.herd
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.toancao.pokemonai.spawner.hierarchy.getHerdData
-import com.toancao.pokemonai.spawner.hierarchy.isBattling
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvents

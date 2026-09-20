@@ -2,7 +2,6 @@ package com.toancao.pokemonai.behaviors.herd
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.toancao.pokemonai.spawner.hierarchy.getHerdData
-import com.toancao.pokemonai.spawner.hierarchy.isBattling
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker
 import net.minecraft.world.entity.ai.goal.Goal

@@ -1,5 +1,6 @@
 package com.toancao.pokemonai.flight.spawner
 
+import com.cobblemon.mod.common.Cobblemon
 import com.cobblemon.mod.common.api.spawning.CobblemonSpawnPools
 import com.cobblemon.mod.common.api.spawning.SpawnCause
 import com.cobblemon.mod.common.api.spawning.detail.PokemonSpawnDetail
@@ -17,7 +18,12 @@ import kotlin.random.Random
 
 object CustomAirSpawner {
     private var tickCounter = 0
-    private val dummySpawner = BasicSpawner("custom_air_spawner", CobblemonSpawnPools.WORLD_SPAWN_POOL, 32f)
+    private val dummySpawner = BasicSpawner(
+        "custom_air_spawner",
+        CobblemonSpawnPools.WORLD_SPAWN_POOL,
+        32f,
+        Cobblemon.bestSpawner.config.worldBuckets
+    )
     private val dummyCause = SpawnCause(dummySpawner)
 
     fun tick(server: MinecraftServer) {
@@ -212,25 +218,9 @@ object CustomAirSpawner {
                 }
             }
             
-            // Tìm khoảng level hợp lệ của con Pokemon này (tránh sinh ra Pidgey lv 60)
-            var minLvl = 1
-            var maxLvl = 100
-            try {
-                // Tìm property trả về IntRange trong detail
-                for (field in selectedDetail.javaClass.declaredFields) {
-                    if (field.type == kotlin.ranges.IntRange::class.java) {
-                        field.isAccessible = true
-                        val range = field.get(selectedDetail) as? kotlin.ranges.IntRange
-                        if (range != null) {
-                            minLvl = range.first
-                            maxLvl = range.last
-                            break
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                // Ignore
-            }
+            val naturalLevelRange = selectedDetail.pokemon.deriveLevelRange(selectedDetail.levelRange)
+            val minLvl = naturalLevelRange.first
+            val maxLvl = naturalLevelRange.last
             
             // Random level nhưng phải nằm trong giới hạn tự nhiên của nó
             val finalMax = Math.min(maxLvl, Math.max(minLvl, playerMaxLevel))

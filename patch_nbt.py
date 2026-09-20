@@ -1,7 +1,8 @@
 import gzip
 import struct
+from pathlib import Path
 
-filename = "d:/Minecraft/allmod/TC_world_reborn_1.21.1_1.7.3/src/main/resources/data/tc_reborn/structure/magikarp_dragon_evolution_lake.nbt"
+filename = Path(__file__).resolve().parent / "src/main/resources/data/tc_reborn/structure/magikarp_dragon_evolution_lake.nbt"
 
 with gzip.open(filename, "rb") as f:
     data = f.read()

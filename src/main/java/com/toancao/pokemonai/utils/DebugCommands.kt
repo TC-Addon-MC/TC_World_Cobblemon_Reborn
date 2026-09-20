@@ -8,7 +8,6 @@ import net.minecraft.network.chat.Component
 import com.toancao.pokemonai.compat.CobblemonBridge
 import com.toancao.pokemonai.spawner.hierarchy.getHerdData
 import com.toancao.pokemonai.spawner.hierarchy.setHerdData
-import com.toancao.pokemonai.spawner.hierarchy.isBattling
 import com.toancao.pokemonai.spawner.hierarchy.HerdRole
 import com.toancao.pokemonai.spawner.GenericPackSpawner
 import com.toancao.pokemonai.spawner.PackSpawnRegistry

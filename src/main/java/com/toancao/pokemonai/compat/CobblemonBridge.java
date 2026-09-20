@@ -40,32 +40,6 @@ public class CobblemonBridge {
         entity.setBeamMode(mode);
     }
 
-    public static void setDummyOwner(Pokemon pokemon) {
-        try {
-            // Sử dụng Reflection để can thiệp vào backing field 'ownerUUID'
-            java.lang.reflect.Field field = pokemon.getClass().getDeclaredField("ownerUUID");
-            field.setAccessible(true);
-            field.set(pokemon, java.util.UUID.fromString("00000000-0000-0000-0000-000000000000"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static boolean isDummyOwner(Pokemon pokemon) {
-        java.util.UUID owner = pokemon.getOwnerUUID();
-        return owner != null && owner.toString().equals("00000000-0000-0000-0000-000000000000");
-    }
-
-    public static void clearOwner(Pokemon pokemon) {
-        try {
-            java.lang.reflect.Field field = pokemon.getClass().getDeclaredField("ownerUUID");
-            field.setAccessible(true);
-            field.set(pokemon, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public static double getX(PokemonEntity entity) { return entity.getX(); }
     public static double getY(PokemonEntity entity) { return entity.getY(); }
     public static double getZ(PokemonEntity entity) { return entity.getZ(); }
@@ -89,24 +63,7 @@ public class CobblemonBridge {
         entity.getNavigation().stop();
     }
     public static void setEvolutionStarted(PokemonEntity entity, boolean started) {
-        try {
-            java.lang.reflect.Field field = PokemonEntity.class.getDeclaredField("EVOLUTION_STARTED");
-            field.setAccessible(true);
-            net.minecraft.network.syncher.EntityDataAccessor<Boolean> accessor = (net.minecraft.network.syncher.EntityDataAccessor<Boolean>) field.get(null);
-            entity.getEntityData().set(accessor, started);
-        } catch (Exception e) {
-            try {
-                java.lang.reflect.Field field = PokemonEntity.class.getDeclaredField("Companion");
-                field.setAccessible(true);
-                Object companion = field.get(null);
-                java.lang.reflect.Method method = companion.getClass().getDeclaredMethod("getEVOLUTION_STARTED");
-                method.setAccessible(true);
-                net.minecraft.network.syncher.EntityDataAccessor<Boolean> accessor = (net.minecraft.network.syncher.EntityDataAccessor<Boolean>) method.invoke(companion);
-                entity.getEntityData().set(accessor, started);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
+        entity.getEntityData().set(PokemonEntity.getEVOLUTION_STARTED(), started);
     }
     public static void sendPosableAnimationPacket(int entityId, String animationName, double x, double y, double z, net.minecraft.world.level.Level level) {
         new com.cobblemon.mod.common.net.messages.client.animation.PlayPosableAnimationPacket(
@@ -131,8 +88,4 @@ public class CobblemonBridge {
         entity.setBehaviourFlag(com.cobblemon.mod.common.entity.pokemon.PokemonBehaviourFlag.FLYING, value);
     }
 
-    public static boolean isBattling(PokemonEntity entity) {
-        if (entity == null) return false;
-        return entity.getBattleId() != null;
-    }
 }

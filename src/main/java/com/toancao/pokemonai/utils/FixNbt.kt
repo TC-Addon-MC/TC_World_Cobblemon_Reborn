@@ -2,14 +2,16 @@ package com.toancao.pokemonai.utils
 
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.CompoundTag
-import java.io.File
 import java.nio.file.Path
 
 object FixNbt {
     @JvmStatic
     fun main(args: Array<String>) {
         try {
-            val file = File("d:/Minecraft/allmod/TC_world_reborn_1.21.1_1.7.3/src/main/resources/data/tc_reborn/structure/magikarp_dragon_evolution_lake.nbt")
+            val file = Path.of(
+                "src", "main", "resources", "data", "tc_reborn", "structure",
+                "magikarp_dragon_evolution_lake.nbt"
+            ).toFile()
             if (!file.exists()) {
                 println("File not found: ${file.absolutePath}")
                 return

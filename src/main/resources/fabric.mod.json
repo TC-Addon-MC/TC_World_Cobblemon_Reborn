@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
 	"id": "tc_reborn",
-	"version": "1.2.0",
-	"name": "TC Cobblemon World Reborn",
-	"description": "A structure spawning mod for Cobblemon.",
+	"version": "${version}",
+	"name": "Cobblemon: TC Living World",
+	"description": "Brings the Cobblemon world to life with natural Pokemon behaviors, herds, flight, aerial spawning, emotions, and world events.",
 	"authors": [
 		"Toan Cao"
 	],
@@ -31,7 +31,7 @@
 	"depends": {
 		"fabricloader": ">=0.15.0",
 		"minecraft": "~1.21.1",
-		"cobblemon": "*",
+		"cobblemon": ">=1.8.0 <1.9.0",
 		"fabric-language-kotlin": "*"
 	}
 }

@@ -4,7 +4,6 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.toancao.pokemonai.behaviors.combat.BlockBreakHandler
 import com.toancao.pokemonai.behaviors.combat.HerdSharedAggroGoal
 import com.toancao.pokemonai.spawner.hierarchy.getHerdData
-import com.toancao.pokemonai.spawner.hierarchy.isBattling
 import com.toancao.pokemonai.spawner.hierarchy.setHerdData
 import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.ParticleTypes

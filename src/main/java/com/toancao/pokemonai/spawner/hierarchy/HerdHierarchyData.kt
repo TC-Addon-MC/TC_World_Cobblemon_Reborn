@@ -55,6 +55,3 @@ fun PokemonEntity.getHerdData(): HerdHierarchyData {
 fun PokemonEntity.setHerdData(data: HerdHierarchyData) {
     this.setAttached(PokemonAttachments.HERD_DATA, data)
 }
-
-val PokemonEntity.isBattling: Boolean
-    get() = com.toancao.pokemonai.compat.CobblemonBridge.isBattling(this)

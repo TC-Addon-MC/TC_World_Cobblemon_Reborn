@@ -3,7 +3,6 @@ package com.toancao.pokemonai.behaviors.combat
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.toancao.pokemonai.spawner.hierarchy.HerdRole
 import com.toancao.pokemonai.spawner.hierarchy.getHerdData
-import com.toancao.pokemonai.spawner.hierarchy.isBattling
 import com.toancao.pokemonai.spawner.hierarchy.setHerdData
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.server.level.ServerLevel
