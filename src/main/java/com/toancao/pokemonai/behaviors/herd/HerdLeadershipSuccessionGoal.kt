@@ -20,7 +20,7 @@ class HerdLeadershipSuccessionGoal(private val entity: PokemonEntity) : Goal() {
     override fun canUse(): Boolean {
         if (entity.isBattling) return false
         val data = entity.getHerdData()
-        if (!data.isInHerd || data.isLeader) return false
+        if (!data.isInHerd || data.isLeader || data.isNativeHerd) return false
 
         if (--checkCooldown > 0) return false
         checkCooldown = 40
@@ -37,9 +37,14 @@ class HerdLeadershipSuccessionGoal(private val entity: PokemonEntity) : Goal() {
         val hasLivingLeader = packMembers.any { it.getHerdData().isLeader }
         if (hasLivingLeader) return false
 
-        // Không có Leader -> Chọn con Đàn Em có Level cao nhất để thăng cấp lên Đầu Đàn
-        val highestMember = packMembers.maxByOrNull { it.pokemon.level }
-        return highestMember == entity
+        // Native Alpha luôn được ưu tiên; sau đó mới xét level và kích thước native.
+        val successor = packMembers.maxWithOrNull(
+            compareBy<PokemonEntity> { it.pokemon.isAlpha }
+                .thenBy { it.pokemon.level }
+                .thenBy { it.pokemon.scaleModifier }
+                .thenBy { it.uuid.toString() }
+        )
+        return successor == entity
     }
 
     override fun start() {

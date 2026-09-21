@@ -52,7 +52,7 @@ class HerdSharedAggroGoal(private val entity: PokemonEntity) : Goal() {
     companion object {
         /**
          * Kích hoạt Đại Xung Phong:
-         * - Con đầu đàn (Alpha Leader) LAO LÊN TRƯỚC TIÊN PHONG (Delay = 0).
+         * - Con đầu đàn LAO LÊN TRƯỚC TIÊN PHONG (Delay = 0).
          * - Các con đi sau nối đuôi chạy theo hướng của con đầu đàn (Delay tăng dần theo thứ bậc).
          * - Trong lúc này mọi tính năng bầy đàn nhàn rỗi đều bị khóa.
          */

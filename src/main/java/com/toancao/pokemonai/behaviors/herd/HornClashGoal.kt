@@ -91,12 +91,15 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
         }
 
         // 4. Tìm 1 đối tác Tauros gần đó (cự ly 3.0 - 7.0 block) cùng bầy
-        val box = AABB.ofSize(entity.position(), 14.0, 6.0, 14.0)
+        val clashRadius = 7.0 * entity.pokemon.scaleModifier.coerceIn(0.85f, 1.15f)
+        val box = AABB.ofSize(entity.position(), clashRadius * 2.0, 6.0, clashRadius * 2.0)
         val candidate = entity.level().getEntitiesOfClass(PokemonEntity::class.java, box) {
+            val maxDistance = clashRadius * ((entity.pokemon.scaleModifier + it.pokemon.scaleModifier) / 2.0)
+                .coerceIn(0.85, 1.15)
             it != entity && it.isAlive && !it.isBattling &&
             it.getHerdData().herdId == data.herdId &&
             !it.getHerdData().isStampeding &&
-            !isBusy(it)
+            !isBusy(it) && entity.distanceToSqr(it) in 9.0..(maxDistance * maxDistance)
         }.firstOrNull() ?: return false
 
         // Khởi tạo phiên giao đấu đồng bộ cho CẢ 2 CON

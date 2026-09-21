@@ -1,5 +1,6 @@
 package com.toancao.pokemonai.flight
 
+import com.cobblemon.mod.common.api.events.CobblemonEvents
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.toancao.pokemonai.flight.engine.FlightEngine
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents
@@ -31,6 +32,12 @@ object CustomFlightManager {
 
     fun register() {
         FlightEngine.register()
+        CobblemonEvents.RIDE_EVENT_PRE.subscribe { event ->
+            FlightEngine.suspendForRiding(event.pokemon)
+        }
+        CobblemonEvents.RIDE_EVENT_POST.subscribe { event ->
+            FlightEngine.suspendForRiding(event.pokemon)
+        }
 
         ServerTickEvents.END_SERVER_TICK.register { server ->
             com.toancao.pokemonai.flight.spawner.CustomAirSpawner.tick(server)

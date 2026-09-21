@@ -111,11 +111,23 @@ object FlightEngine {
 
     fun hasActiveFlight(pokemon: PokemonEntity): Boolean = activeSessions.containsKey(pokemon.uuid)
 
+    fun suspendForRiding(pokemon: PokemonEntity) {
+        val session = activeSessions[pokemon.uuid]
+        FlightHelpers.terminateFlight(pokemon)
+        if (session != null) {
+            session.state = InternalFlightState.DONE
+        }
+    }
+
     fun needsBounce(pokemon: PokemonEntity): Boolean = activeSessions[pokemon.uuid]?.needsBounce == true
 
     // Tick logic theo đúng thứ tự ưu tiên từ kế hoạch
     private fun tickSession(session: FlightSession) {
         val mob = session.pokemon as net.minecraft.world.entity.Mob
+        if (mob.isVehicle) {
+            suspendForRiding(session.pokemon)
+            return
+        }
         val p = session.config
         session.ticksInCurrentState++
 

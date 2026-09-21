@@ -12,6 +12,7 @@ import com.toancao.pokemonai.spawner.hierarchy.HerdRole
 import com.toancao.pokemonai.spawner.GenericPackSpawner
 import com.toancao.pokemonai.spawner.PackSpawnRegistry
 import com.toancao.pokemonai.pokemon.TaurosConfig
+import com.cobblemon.mod.common.pokemon.PokemonSizeCategory
 
 object DebugCommands {
     fun register() {
@@ -482,12 +483,20 @@ object DebugCommands {
         val species = CobblemonBridge.getSpeciesName(target)
         val levelVal = target.pokemon.level
         val scaleVal = target.attributes.getInstance(net.minecraft.world.entity.ai.attributes.Attributes.SCALE)?.value ?: 1.0
+        val nativeAlpha = target.pokemon.isAlpha
+        val sizeCategory = PokemonSizeCategory.fromScale(target.pokemon.scaleModifier)
+        val herdSource = if (herdData.isNativeHerd) "Cobblemon 1.8" else "TC"
+        val nativeHerdSize = if (herdData.isNativeHerd) target.getHerdSize().toString() else "N/A"
 
         source.sendSuccess({
             Component.literal("§6========== THÔNG TIN BẦY ĐÀN ==========\n" +
                     "§eLoài: §f$species (Lv $levelVal)\n" +
                     "§eScale: §f${String.format("%.2f", scaleVal)}x\n" +
                     "§eVai trò: §a${if (herdData.isLeader) "👑 ĐẦU ĐÀN (Leader)" else "🐂 ĐÀN EM (Member)"}\n" +
+                    "§eNative Alpha: §f$nativeAlpha\n" +
+                    "§eSize Category: §f$sizeCategory\n" +
+                    "§eHerd Source: §f$herdSource\n" +
+                    "§eNative Herd Size: §f$nativeHerdSize\n" +
                     "§eHerd ID: §7${herdData.herdId ?: "Không có (Đơn lẻ)"}\n" +
                     "§eLeader UUID: §7${herdData.leaderUUID ?: "None"}\n" +
                     "§eFormation Index: §f${herdData.formationIndex}\n" +
@@ -572,16 +581,16 @@ object DebugCommands {
         val box = net.minecraft.world.phys.AABB.ofSize(player.position(), 32.0, 16.0, 32.0)
 
         val leader = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
-            it.getHerdData().isAlpha
+            it.getHerdData().isLeader
         }.minByOrNull { it.distanceToSqr(player) }
 
         if (leader == null) {
-            source.sendFailure(Component.literal("§cKhông tìm thấy Alpha Leader nào trong bán kính 16 block!"))
+            source.sendFailure(Component.literal("§cKhông tìm thấy herd leader nào trong bán kính 16 block!"))
             return 0
         }
 
         leader.discard()
-        source.sendSuccess({ Component.literal("§cĐã loại bỏ Alpha Leader! Hãy quan sát đàn tự động thăng chức con mới lên thay thế.") }, true)
+        source.sendSuccess({ Component.literal("§cĐã loại bỏ herd leader! Hãy quan sát đàn tự động thăng chức con mới lên thay thế.") }, true)
         return 1
     }
 
@@ -648,11 +657,11 @@ object DebugCommands {
         val level = player.serverLevel()
         val box = net.minecraft.world.phys.AABB.ofSize(target.position(), 48.0, 24.0, 48.0)
         val nearbyLeader = level.getEntitiesOfClass(com.cobblemon.mod.common.entity.pokemon.PokemonEntity::class.java, box) {
-            it != target && it.getHerdData().isAlpha
+            it != target && it.getHerdData().isLeader
         }.firstOrNull()
 
         if (nearbyLeader == null) {
-            source.sendFailure(Component.literal("§cKhông tìm thấy bầy đàn nào có Alpha Leader ở gần trong bán kính 24 block!"))
+            source.sendFailure(Component.literal("§cKhông tìm thấy bầy đàn nào có leader ở gần trong bán kính 24 block!"))
             return 0
         }
 

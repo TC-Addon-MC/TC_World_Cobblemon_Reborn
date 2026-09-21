@@ -42,7 +42,7 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         val distSq = entity.distanceToSqr(found)
 
         // Bắt đầu di chuyển bám theo khi cách xa thủ lĩnh > desiredDist + 6.0 block
-        val desiredDist = getDesiredDistanceBehind(data.formationIndex)
+        val desiredDist = getDesiredDistanceBehind(data.formationIndex, found)
         val triggerDist = desiredDist + 6.0
         return distSq > (triggerDist * triggerDist)
     }
@@ -57,15 +57,15 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         if (!currentLeader.isAlive) return false
 
         val distSq = entity.distanceToSqr(currentLeader)
-        val desiredDist = getDesiredDistanceBehind(data.formationIndex)
+        val desiredDist = getDesiredDistanceBehind(data.formationIndex, currentLeader)
 
         // Dừng lại khi đã bám sát vị trí hàng ngũ phía sau thủ lĩnh
         return distSq > (desiredDist * desiredDist) && distSq < 3600.0
     }
 
-    private fun getDesiredDistanceBehind(formationIndex: Int): Double {
+    private fun getDesiredDistanceBehind(formationIndex: Int, currentLeader: PokemonEntity): Double {
         val row = ((formationIndex.coerceAtLeast(1) + 1) / 2)
-        return 3.0 + row * 2.5 // Hàng 1 cách 5.5 block, Hàng 2 cách 8.0 block, Hàng 3 cách 10.5 block...
+        return (3.0 + row * 2.5) * sizeSpacingModifier(currentLeader)
     }
 
     override fun start() {
@@ -92,8 +92,9 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         val row = (fIndex + 1) / 2          // Hàng 1, Hàng 2, Hàng 3...
         val side = if (fIndex % 2 == 1) 1.0 else -1.0 // So le Cánh Phải / Cánh Trái
 
-        val behindDist = 3.5 + row * 2.5     // Lùi về phía sau thủ lĩnh
-        val lateralDist = side * (row * 2.0) // Dạt sang hai cánh chữ V
+        val spacing = sizeSpacingModifier(currentLeader)
+        val behindDist = (3.5 + row * 2.5) * spacing
+        val lateralDist = side * (row * 2.0) * spacing
 
         // Tọa độ mục tiêu luôn nằm PHÍA SAU thủ lĩnh:
         val targetX = currentLeader.x - (forwardX * behindDist) + (rightX * lateralDist)
@@ -141,5 +142,10 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         entity.brain.eraseMemory(MemoryModuleType.WALK_TARGET)
         entity.brain.eraseMemory(MemoryModuleType.LOOK_TARGET)
         entity.navigation.stop()
+    }
+
+    private fun sizeSpacingModifier(currentLeader: PokemonEntity): Double {
+        val averageScale = (entity.pokemon.scaleModifier + currentLeader.pokemon.scaleModifier) / 2.0
+        return averageScale.coerceIn(0.85, 1.15)
     }
 }

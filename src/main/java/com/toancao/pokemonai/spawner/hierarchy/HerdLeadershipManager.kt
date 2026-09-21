@@ -18,12 +18,12 @@ object HerdLeadershipManager {
     }
 
     /**
-     * Tìm con đầu đàn (Alpha Leader) của bầy
+     * Tìm con đầu đàn của bầy.
      */
     fun findLeader(level: ServerLevel, herdId: UUID, searchBox: AABB): PokemonEntity? {
         return level.getEntitiesOfClass(PokemonEntity::class.java, searchBox) { entity ->
             val data = entity.getHerdData()
-            data.herdId == herdId && data.isAlpha
+            data.herdId == herdId && data.isLeader
         }.firstOrNull()
     }
 }

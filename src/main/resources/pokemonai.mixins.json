@@ -3,7 +3,7 @@
   "package": "com.toancao.pokemonai.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PokemonEntityMixin"
+    "MobGoalSelectorAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

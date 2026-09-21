@@ -14,6 +14,7 @@ data class HerdHierarchyData(
     var leaderUUID: UUID? = null,
     var partnerUUID: UUID? = null,           // Đối tác giao hữu (đấu sừng, tán tỉnh)
     var formationIndex: Int = 0,             // Thứ tự vị trí trong đội hình (0: Leader, 1..N: Đàn em)
+    var isNativeHerd: Boolean = false,
     var isStampeding: Boolean = false,       // Đang trong trạng thái đại xung phong bầy đàn
     var stampedeDelayTicks: Int = 0,         // Độ trễ xuất phát (để con đầu đàn chạy trước tiên phong)
     var stampedeTicksRemaining: Int = 0,     // Thời gian xung phong còn lại
@@ -21,7 +22,6 @@ data class HerdHierarchyData(
     var stampedeDirZ: Double = 0.0
 ) {
     val isLeader: Boolean get() = role == HerdRole.LEADER
-    val isAlpha: Boolean get() = role == HerdRole.LEADER
     val isInHerd: Boolean get() = herdId != null
 
     companion object {
@@ -31,14 +31,16 @@ data class HerdHierarchyData(
                 Codec.STRING.optionalFieldOf("role", "MEMBER").forGetter { it.role.name },
                 UUIDUtil.CODEC.optionalFieldOf("leaderUUID").forGetter { Optional.ofNullable(it.leaderUUID) },
                 UUIDUtil.CODEC.optionalFieldOf("partnerUUID").forGetter { Optional.ofNullable(it.partnerUUID) },
-                Codec.INT.optionalFieldOf("formationIndex", 0).forGetter { it.formationIndex }
-            ).apply(instance) { herdIdOpt, roleStr, leaderOpt, partnerOpt, fIdx ->
+                Codec.INT.optionalFieldOf("formationIndex", 0).forGetter { it.formationIndex },
+                Codec.BOOL.optionalFieldOf("isNativeHerd", false).forGetter { it.isNativeHerd }
+            ).apply(instance) { herdIdOpt, roleStr, leaderOpt, partnerOpt, fIdx, nativeHerd ->
                 HerdHierarchyData(
                     herdId = herdIdOpt.orElse(null),
                     role = runCatching { HerdRole.valueOf(roleStr) }.getOrDefault(HerdRole.MEMBER),
                     leaderUUID = leaderOpt.orElse(null),
                     partnerUUID = partnerOpt.orElse(null),
-                    formationIndex = fIdx
+                    formationIndex = fIdx,
+                    isNativeHerd = nativeHerd
                 )
             }
         }

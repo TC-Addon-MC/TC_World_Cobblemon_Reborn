@@ -75,6 +75,10 @@ class NormalFlightStateMachine(
             cleanup()
             return
         }
+        if (mob.isVehicle) {
+            FlightEngine.suspendForRiding(pokemon)
+            return
+        }
         globalTick++
         profile.ticksInCurrentState++
         

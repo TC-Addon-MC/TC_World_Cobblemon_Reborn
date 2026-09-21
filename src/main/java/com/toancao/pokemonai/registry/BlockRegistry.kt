@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup
 import net.minecraft.network.chat.Component
@@ -37,19 +38,19 @@ object BlockRegistry {
 
     val DRAGON_GATE_BOTTOM_BLOCK_ENTITY: BlockEntityType<DragonGateBottomBlockEntity> = BlockEntityType.Builder.of(
         ::DragonGateBottomBlockEntity, DRAGON_GATE_BOTTOM_BLOCK
-    ).build(null as com.mojang.datafixers.types.Type<*>?)
+    ).buildWithoutDataFixer()
     
     val DRAGON_GATE_WAYPOINT_BLOCK_ENTITY: BlockEntityType<DragonGateWaypointBlockEntity> = BlockEntityType.Builder.of(
         ::DragonGateWaypointBlockEntity, DRAGON_GATE_WAYPOINT_BLOCK
-    ).build(null as com.mojang.datafixers.types.Type<*>?)
+    ).buildWithoutDataFixer()
 
     val DRAGON_GATE_TOP_BLOCK_ENTITY: BlockEntityType<com.toancao.pokemonai.blocks.entity.DragonGateTopBlockEntity> = BlockEntityType.Builder.of(
         { pos, state -> com.toancao.pokemonai.blocks.entity.DragonGateTopBlockEntity(pos, state) }, DRAGON_GATE_TOP_BLOCK
-    ).build(null as com.mojang.datafixers.types.Type<*>?)
+    ).buildWithoutDataFixer()
 
     val TC_TOP_BOTTOM_BLOCK_ENTITY: BlockEntityType<TcTopBottomBlockEntity> = BlockEntityType.Builder.of(
         ::TcTopBottomBlockEntity, TC_TOP_BOTTOM_BLOCK
-    ).build(null as com.mojang.datafixers.types.Type<*>?)
+    ).buildWithoutDataFixer()
 
     fun register() {
         registerBlock("dragon_gate_bottom", DRAGON_GATE_BOTTOM_BLOCK)
@@ -107,5 +108,10 @@ object BlockRegistry {
             BlockItem(block, Item.Properties())
         }
         Registry.register(BuiltInRegistries.ITEM, id, blockItem)
+    }
+
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+    private fun <T : BlockEntity> BlockEntityType.Builder<T>.buildWithoutDataFixer(): BlockEntityType<T> {
+        return build(null)
     }
 }

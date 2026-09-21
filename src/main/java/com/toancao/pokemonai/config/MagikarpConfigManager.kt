@@ -1,6 +1,7 @@
 package com.toancao.pokemonai.config
 
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 
@@ -12,6 +13,7 @@ data class MagikarpEventConfig(
     var jumpVelocityMin: Double = 1.2,
     var jumpVelocityMaxOffset: Double = 0.4,
     var requiredLevelForEvolution: Int = 20,
+    var forceEvolutionIgnoresRequirements: Boolean = true,
     var baseRage: Int = 0,
     var baseDetermination: Int = 20,
     var baseFear: Int = 30
@@ -34,6 +36,9 @@ object MagikarpConfigManager {
             try {
                 val json = configFile.readText()
                 config = gson.fromJson(json, MagikarpEventConfig::class.java) ?: MagikarpEventConfig()
+                if (!JsonParser.parseString(json).asJsonObject.has("forceEvolutionIgnoresRequirements")) {
+                    config.forceEvolutionIgnoresRequirements = true
+                }
                 // Save again to ensure new fields are written
                 saveConfig()
             } catch (e: Exception) {

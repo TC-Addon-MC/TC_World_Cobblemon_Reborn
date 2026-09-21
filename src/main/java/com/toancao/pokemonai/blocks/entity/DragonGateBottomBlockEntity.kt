@@ -324,7 +324,9 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
             com.toancao.pokemonai.compat.CobblemonBridge.addTag(pokemonEntity, "target_y_${endPos.y}")
             com.toancao.pokemonai.compat.CobblemonBridge.addTag(pokemonEntity, "target_z_${endPos.z}")
 
-            level.addFreshEntity(pokemonEntity as net.minecraft.world.entity.Entity)
+            if (level.addFreshEntity(pokemonEntity as net.minecraft.world.entity.Entity)) {
+                com.toancao.pokemonai.behaviors.BehaviorApplicator.apply(pokemonEntity)
+            }
         }
     }
 }

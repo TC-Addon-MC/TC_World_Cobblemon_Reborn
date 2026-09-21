@@ -210,8 +210,8 @@ class HerdStampedeGoal(
         val level = entity.level() as? ServerLevel ?: return
         level.sendParticles(ParticleTypes.SMOKE, entity.x, entity.y + 1.0, entity.z, 4, 0.2, 0.2, 0.2, 0.01)
 
-        // NẾU LÀ THỦ LĨNH (Alpha Leader) DỪNG LẠI -> Báo hiệu cho TOÀN BỘ ĐÀN cùng dừng và bật lại tính năng bầy đàn!
-        if (data.isAlpha && data.herdId != null) {
+        // NẾU LÀ THỦ LĨNH DỪNG LẠI -> Báo hiệu cho TOÀN BỘ ĐÀN cùng dừng và bật lại tính năng bầy đàn!
+        if (data.isLeader && data.herdId != null) {
             val searchBox = AABB.ofSize(entity.position(), 128.0, 64.0, 128.0)
             HerdSharedAggroGoal.stopHerdStampede(level, data.herdId!!, searchBox)
         }

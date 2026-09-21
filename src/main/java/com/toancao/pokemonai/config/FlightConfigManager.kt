@@ -18,8 +18,8 @@ data class RootFlightConfig(
     var airSpawnChance: Double = 0.8,
     var airSpawnInterval: Int = 60,
     var airSpawnRadius: Double = 64.0,
-    var pokemon_assignments: MutableMap<String, String> = mutableMapOf(),
-    var flight_presets: MutableMap<String, FlightConfig> = mutableMapOf()
+    var pokemon_assignments: MutableMap<String, String>? = mutableMapOf(),
+    var flight_presets: MutableMap<String, FlightConfig>? = mutableMapOf()
 )
 
 object FlightConfigManager {
@@ -64,9 +64,11 @@ object FlightConfigManager {
                     gson.fromJson(json, rootType)
                 } catch (e: Exception) { null }
 
-                if (rootConfig != null && rootConfig.version == 3 && rootConfig.pokemon_assignments != null && rootConfig.flight_presets != null) {
-                    pokemonAssignments = rootConfig.pokemon_assignments
-                    flightPresets = rootConfig.flight_presets
+                val loadedAssignments = rootConfig?.pokemon_assignments
+                val loadedPresets = rootConfig?.flight_presets
+                if (rootConfig != null && rootConfig.version == 3 && loadedAssignments != null && loadedPresets != null) {
+                    pokemonAssignments = loadedAssignments
+                    flightPresets = loadedPresets
                     machineScanInterval = rootConfig.machineScanInterval
                     machineUnloadDelay = rootConfig.machineUnloadDelay
                     airSpawnChance = rootConfig.airSpawnChance

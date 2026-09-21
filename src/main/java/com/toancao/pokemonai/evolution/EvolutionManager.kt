@@ -1,11 +1,11 @@
 @file:Suppress("INACCESSIBLE_TYPE")
 package com.toancao.pokemonai.evolution
 
-import com.cobblemon.mod.common.api.pokemon.PokemonSpecies
+import com.cobblemon.mod.common.api.events.CobblemonEvents
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.toancao.pokemonai.compat.CobblemonBridge
+import com.toancao.pokemonai.config.MagikarpConfigManager
 import com.toancao.pokemonai.utils.EntityUtils
-import com.toancao.pokemonai.utils.EvolutionEffectUtils
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.Entity
@@ -14,8 +14,9 @@ object EvolutionManager {
     class ScheduledTask(var delayTicks: Int, val action: () -> Unit)
     private val scheduledTasks = mutableListOf<ScheduledTask>()
 
-    // Theo dõi các Pokemon đang trong quá trình tiến hóa để tránh trigger lại trong lúc chờ
-    private val evolving = mutableSetOf<java.util.UUID>()
+    private data class PendingEvolution(val targetSpecies: String, val modifiers: (PokemonEntity) -> Unit)
+    private val evolvingUntil = mutableMapOf<java.util.UUID, Long>()
+    private val pendingEvolutions = mutableMapOf<java.util.UUID, PendingEvolution>()
 
     // Lên lịch thực thi một hành động sau một khoảng thời gian delay tính bằng tick.
     fun scheduleTask(delayTicks: Int, action: () -> Unit) {
@@ -24,6 +25,17 @@ object EvolutionManager {
 
     // Đăng ký sự kiện tick của server để xử lý các task và kiểm tra tiến hóa định kỳ.
     fun register() {
+        CobblemonEvents.EVOLUTION_COMPLETE.subscribe { event ->
+            val entity = event.pokemon.entity ?: return@subscribe
+            val pending = pendingEvolutions.remove(event.pokemon.uuid) ?: return@subscribe
+            if (event.pokemon.species.name.equals(pending.targetSpecies, ignoreCase = true)) {
+                pending.modifiers(entity)
+                com.toancao.pokemonai.api.PokemonAIEvents.AFTER_FORCE_EVOLVE.invoker()
+                    .onAfterForceEvolve(entity, pending.targetSpecies)
+            }
+            evolvingUntil.remove(event.pokemon.uuid)
+        }
+
         var tickCounter = 0
         ServerTickEvents.END_WORLD_TICK.register { world: ServerLevel ->
             val toExecute = mutableListOf<ScheduledTask>()
@@ -79,47 +91,43 @@ object EvolutionManager {
 
     // Kích hoạt quá trình tiến hóa bắt buộc và áp dụng các thay đổi chỉ số sau khi tiến hóa.
     private fun evolve(pokemon: PokemonEntity, result: EvolutionResult) {
-        forceEvolve(pokemon, result.targetSpecies)
-        result.modifiers(pokemon)
+        forceEvolve(pokemon, result.targetSpecies, result.modifiers)
     }
 
     // Ép Pokemon hoang dã tiến hóa thành loài mới với hiệu ứng xoáy và ánh sáng.
-    fun forceEvolve(pokemon: PokemonEntity, targetSpecies: String) {
+    fun forceEvolve(
+        pokemon: PokemonEntity,
+        targetSpecies: String,
+        modifiers: (PokemonEntity) -> Unit = {}
+    ) {
         if (!CobblemonBridge.isWild(pokemon)) return
 
         // Gọi API Event
         val allow = com.toancao.pokemonai.api.PokemonAIEvents.BEFORE_FORCE_EVOLVE.invoker().onBeforeForceEvolve(pokemon, targetSpecies)
         if (!allow) return
 
-        // Tránh trigger lại trong khi đang đợi animation (50 tick)
+        // Native evolution lasts several seconds; use a timeout so a cancelled event can retry later.
         val pokemonId = CobblemonBridge.getEntityUUID(pokemon)
-        if (pokemonId in evolving) return
-        evolving.add(pokemonId)
+        val level = CobblemonBridge.getLevel(pokemon) as? ServerLevel ?: return
+        if ((evolvingUntil[pokemonId] ?: 0L) > level.gameTime) return
 
         val pokemonData = CobblemonBridge.getPokemonData(pokemon)
-        val newSpecies = PokemonSpecies.getByName(targetSpecies) ?: run {
-            evolving.remove(pokemonId)
-            return
+        val candidates = if (MagikarpConfigManager.config.forceEvolutionIgnoresRequirements) {
+            pokemonData.evolutions + pokemonData.lockedEvolutions
+        } else {
+            pokemonData.evolutions
         }
-        val level = CobblemonBridge.getLevel(pokemon) as? ServerLevel ?: run {
-            evolving.remove(pokemonId)
-            return
-        }
+        val evolution = candidates.firstOrNull {
+            it.result.species?.equals(targetSpecies, ignoreCase = true) == true
+        } ?: return
 
-        EvolutionEffectUtils.playEvolutionSequence(
-            pokemon = pokemon,
-            level = level,
-            onEvolve = {
-                // Đổi species/form qua public API — không dùng proxy để tránh crash
-                pokemonData.species = newSpecies
-                pokemonData.form = newSpecies.standardForm
-                pokemonData.initializeMoveset(false)
-                pokemonData.updateAspects()
-            },
-            onComplete = {
-                evolving.remove(pokemonId)
-                com.toancao.pokemonai.api.PokemonAIEvents.AFTER_FORCE_EVOLVE.invoker().onAfterForceEvolve(pokemon, targetSpecies)
-            }
-        )
+        evolvingUntil[pokemonId] = level.gameTime + 200L
+        pendingEvolutions[pokemonId] = PendingEvolution(targetSpecies, modifiers)
+        if (MagikarpConfigManager.config.forceEvolutionIgnoresRequirements) {
+            evolution.forceEvolve(pokemonData)
+        } else if (!evolution.evolve(pokemonData)) {
+            evolvingUntil.remove(pokemonId)
+            pendingEvolutions.remove(pokemonId)
+        }
     }
 }
