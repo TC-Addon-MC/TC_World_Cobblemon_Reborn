@@ -20,8 +20,22 @@ public class CobblemonBridge {
         return pokemon.getOwnerUUID() == null && pokemon.getStoreCoordinates().get() == null;
     }
 
+    public static String getOwnerUUIDString(PokemonEntity entity) {
+        try {
+            Pokemon pokemon = entity.getPokemon();
+            if (pokemon == null || pokemon.getOwnerUUID() == null) return null;
+            return pokemon.getOwnerUUID().toString();
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
     public static String getSpeciesName(PokemonEntity entity) {
         return entity.getPokemon().getSpecies().getName().toLowerCase();
+    }
+
+    public static void playCry(PokemonEntity entity) {
+        entity.cry();
     }
 
     public static boolean checkIsPokemonEntity(Object obj) {

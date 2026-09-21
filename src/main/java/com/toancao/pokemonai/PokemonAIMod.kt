@@ -24,6 +24,7 @@ object PokemonAIMod : ModInitializer {
 
         com.toancao.pokemonai.config.MagikarpConfigManager.loadConfig()
         com.toancao.pokemonai.config.HerdConfigManager.loadConfig()
+        com.toancao.pokemonai.config.AronConfigManager.loadConfig()
 
         PokemonAttachments.register()
         com.toancao.pokemonai.network.EventNetwork.registerPayloads()
@@ -134,5 +135,7 @@ object PokemonAIMod : ModInitializer {
         com.toancao.pokemonai.spawner.PackSpawnRegistry.register(com.toancao.pokemonai.pokemon.BouffalantConfig.SPECIES) { level, pos ->
             com.toancao.pokemonai.pokemon.BouffalantConfig.createPackParams(level, pos)
         }
+
+        BehaviorRegistry.register(com.toancao.pokemonai.pokemon.AronConfig.SPECIES, com.toancao.pokemonai.pokemon.AronConfig.behaviors)
     }
 }

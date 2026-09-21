@@ -35,6 +35,7 @@ object DebugCommands {
         registerFlyNativeCommand(root)
         registerNativeToggleCommand(root)
         registerTestFlyCommand(root)
+        registerIronDiagCommand(root)
 
         dispatcher.register(root)
     }
@@ -267,6 +268,47 @@ object DebugCommands {
                         }
                 )
         )
+    }
+
+    private fun registerIronDiagCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("irondiag")
+                .executes { executeIronDiag(it, "aron") }
+                .then(
+                    Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .executes {
+                            val species = com.mojang.brigadier.arguments.StringArgumentType.getString(it, "species")
+                            executeIronDiag(it, species)
+                        }
+                )
+        )
+    }
+
+    private fun executeIronDiag(
+        context: com.mojang.brigadier.context.CommandContext<CommandSourceStack>,
+        species: String
+    ): Int {
+        val source = context.source
+        val pokemon = findNearestPokemonOfSpecies(source.level, source.entity, species, 128.0)
+            ?: run {
+                source.sendFailure(Component.literal("Không tìm thấy $species trong 128 block"))
+                return 0
+            }
+        val goal = com.toancao.pokemonai.behaviors.forage.IronCravingGoal
+        val owner = CobblemonBridge.getOwnerUUIDString(pokemon) ?: "none"
+        source.sendSuccess({ Component.literal("IronDiag($species) @ [${pokemon.blockX}, ${pokemon.blockY}, ${pokemon.blockZ}]") }, false)
+        source.sendSuccess({ Component.literal("species=${CobblemonBridge.getSpeciesName(pokemon)} wild=${CobblemonBridge.isWild(pokemon)} eligible=${com.toancao.pokemonai.utils.AIFilter.isEligible(pokemon)}") }, false)
+        source.sendSuccess({ Component.literal("owner=$owner battle=${pokemon.battleId ?: "none"} sleep=${pokemon.isSleeping} busy=${pokemon.isBusy} vehicle=${pokemon.isVehicle} target=${pokemon.target != null}") }, false)
+        source.sendSuccess({ Component.literal("goalActive=${pokemon.tags.contains(goal.TAG_ACTIVE)} iron=${findNearestIronFood(pokemon) ?: "none"}") }, false)
+        source.sendSuccess({ Component.literal("sweeps=${goal.sweepTotal} hits=${goal.sweepHit} starts=${goal.startTotal} breaks=${goal.breakTotal} eats=${goal.eatTotal} digs=${goal.digTotal}") }, false)
+        return 1
+    }
+
+    private fun findNearestIronFood(pokemon: com.cobblemon.mod.common.entity.pokemon.PokemonEntity): String? {
+        val goal = com.toancao.pokemonai.behaviors.forage.IronCravingGoal
+        val center = pokemon.blockPosition()
+        val found = goal.findRayTarget(pokemon) ?: return null
+        return "[${found.x}, ${found.y}, ${found.z}] d2=${String.format("%.1f", center.distSqr(found))}"
     }
 
     private fun executeTestFly(

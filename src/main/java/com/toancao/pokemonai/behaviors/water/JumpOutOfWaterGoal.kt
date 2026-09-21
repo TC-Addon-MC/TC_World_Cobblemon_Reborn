@@ -103,6 +103,8 @@ class JumpOutOfWaterGoal(
                 le.z,
                 1.0
             )
+            le.deltaMovement = le.deltaMovement.add(0.0, 0.05, 0.0)
+            le.hasImpulse = true
             
             timeoutTicks++
             if (timeoutTicks > 600) { 
