@@ -23,7 +23,6 @@ object GenericPackSpawner {
         val level = params.level
         val herdId = UUID.randomUUID()
 
-        // 1. Kiểm tra Chunk Cap Protection
         val chunkX = params.centerPos.x.toInt() shr 4
         val chunkZ = params.centerPos.z.toInt() shr 4
         val minX = (chunkX shl 4).toDouble()
@@ -34,10 +33,8 @@ object GenericPackSpawner {
             return null
         }
 
-        // 2. Tính Level Leader (có cân bằng theo Player Party gần nhất)
         val leaderLevel = calculateLeaderLevel(level, params)
 
-        // 3. Tạo ĐẦU ĐÀN (LEADER)
         val leaderPoke = PokemonProperties.parse("species=${params.species} level=$leaderLevel").create()
         val leaderEntity = PokemonEntity(level, leaderPoke)
         leaderEntity.setPos(params.centerPos.x, params.centerPos.y, params.centerPos.z)
@@ -52,7 +49,6 @@ object GenericPackSpawner {
         )
         if (!level.addFreshEntity(leaderEntity)) return null
 
-        // 4. Sinh các con ĐÀN EM (Members)
         val totalCount = params.countRange.random()
         val memberCount = (totalCount - 1).coerceAtLeast(1)
 
@@ -73,7 +69,7 @@ object GenericPackSpawner {
                 scale = scale,
                 herdId = herdId,
                 leaderUUID = leaderEntity.uuid,
-                fIdx = i + 1, // Thứ tự đàn em 1, 2, 3, 4...
+                fIdx = i + 1,
                 extraTags = params.customTags
             )
             if (level.addFreshEntity(memEntity)) {
@@ -106,10 +102,8 @@ object GenericPackSpawner {
         data.formationIndex = fIdx
         entity.setHerdData(data)
 
-        // Gán Scale qua Minecraft Generic Attribute
         entity.attributes.getInstance(Attributes.SCALE)?.baseValue = scale.toDouble()
 
-        // Gán NameTag phân cấp (tắt hiển thị mặc định để giữ mỹ quan tự nhiên)
         if (role == HerdRole.LEADER) {
             entity.customName = net.minecraft.network.chat.Component.literal("§6👑 [ĐẦU ĐÀN]")
             entity.isCustomNameVisible = false
@@ -118,7 +112,6 @@ object GenericPackSpawner {
             entity.isCustomNameVisible = false
         }
 
-        // Gán Tags phân loại
         entity.addTag(role.roleTag)
         entity.addTag("tc_herd_entity")
         extraTags.forEach { entity.addTag(it) }

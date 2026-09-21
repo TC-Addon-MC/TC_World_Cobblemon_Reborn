@@ -35,6 +35,15 @@ replay_*.log
 # AI Assistants
 .gemini/
 .agents/
+.opencode/
+.codex/
+.claude/
+.cursor/
+.windsurf/
+openhands/
+opencode.json
+.opencode.json
+AGENTS.md
 
 # Docs & notes
 docs/

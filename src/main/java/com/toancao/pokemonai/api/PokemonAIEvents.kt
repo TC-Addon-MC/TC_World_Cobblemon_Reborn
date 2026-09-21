@@ -11,9 +11,6 @@ import net.minecraft.world.phys.Vec3
  */
 object PokemonAIEvents {
     
-    // ==========================================
-    // Flight Events
-    // ==========================================
 
     /**
      * Fired when a Pokemon is about to start a flight session.
@@ -43,9 +40,6 @@ object PokemonAIEvents {
         }
     }
 
-    // ==========================================
-    // Evolution & Challenge Events
-    // ==========================================
 
     /**
      * Fired when a Pokemon is about to forcefully evolve via PokemonAI (e.g., Magikarp jumping the Dragon Gate).
@@ -120,9 +114,6 @@ object PokemonAIEvents {
         }
     }
 
-    // ==========================================
-    // Air Spawner Events
-    // ==========================================
 
     /**
      * Fired when CustomAirSpawner is about to spawn a pokemon on a cloud.
@@ -140,9 +131,6 @@ object PokemonAIEvents {
         }
     }
 
-    // ==========================================
-    // AI Filter Events
-    // ==========================================
 
     /**
      * Fired during AIFilter checks to see if a Pokemon is eligible for natural/custom AI actions.
@@ -160,9 +148,6 @@ object PokemonAIEvents {
         }
     }
 
-    // ==========================================
-    // Interfaces
-    // ==========================================
 
     fun interface FlightStartCallback {
         fun onFlightStart(pokemon: PokemonEntity, target: Vec3, isHovering: Boolean): Boolean

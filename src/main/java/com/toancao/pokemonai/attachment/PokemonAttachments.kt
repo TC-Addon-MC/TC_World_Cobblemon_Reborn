@@ -19,6 +19,5 @@ object PokemonAttachments {
     ) { builder -> builder.persistent(com.toancao.pokemonai.spawner.hierarchy.HerdHierarchyData.CODEC) }
 
     fun register() {
-        // Triggers static initializers
     }
 }

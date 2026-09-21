@@ -7,7 +7,7 @@ import java.io.File
 data class HerdPokemonConfig(
     var minPackSize: Int = 6,
     var maxPackSize: Int = 12,
-    var naturalSpawnHerdChance: Float = 0.75f, // Xác suất sinh đàn tự nhiên (0.0 - 1.0)
+    var naturalSpawnHerdChance: Float = 0.75f,
     var leaderScale: Float = 1.25f,
     var memberScaleMin: Float = 0.95f,
     var memberScaleMax: Float = 1.05f,
@@ -17,7 +17,7 @@ data class HerdPokemonConfig(
     var maxBrokenBlocksBeforeStop: Int = 5,
     var hornClashMinCooldownTicks: Int = 1200,
     var hornClashMaxCooldownTicks: Int = 2400,
-    var hornClashRandomChance: Int = 60 // Tỉ lệ 1/X mỗi lần kiểm tra AI
+    var hornClashRandomChance: Int = 60
 )
 
 data class HerdSystemConfig(
@@ -56,7 +56,6 @@ object HerdConfigManager {
             try {
                 val json = configFile.readText()
                 config = gson.fromJson(json, HerdSystemConfig::class.java) ?: HerdSystemConfig()
-                // Lưu lại để tự động cập nhật nếu có trường dữ liệu mới
                 saveConfig()
             } catch (e: Exception) {
                 e.printStackTrace()

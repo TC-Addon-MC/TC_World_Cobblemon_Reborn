@@ -31,7 +31,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
             return
         }
 
-        // Phá các vật cản dọc theo ĐƯỜNG ĐI ĐÃ TÍNH TOÁN
         explodeTunnel(level, path)
 
         val waypointsToPlace = mutableListOf<BlockPos>()
@@ -46,7 +45,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
         for (wpPos in waypointsToPlace.reversed()) {
             val isWater = level.getFluidState(wpPos).`is`(net.minecraft.tags.FluidTags.WATER)
             
-            // Place Waypoint block
             level.setBlock(wpPos, com.toancao.pokemonai.registry.BlockRegistry.DRAGON_GATE_WAYPOINT_BLOCK.defaultBlockState().setValue(com.toancao.pokemonai.blocks.DragonGateWaypointBlock.WATERLOGGED, isWater), 3)
             
             val wpBe = level.getBlockEntity(wpPos) as? com.toancao.pokemonai.blocks.entity.DragonGateWaypointBlockEntity
@@ -62,7 +60,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
 
     private fun explodeTunnel(level: ServerLevel, path: List<BlockPos>) {
         for (centerPos in path) {
-            // Rộng 3x3 (-1 đến 1), cao 1 đến 3 block phía trên mặt nước
             for (ox in -1..1) {
                 for (oy in 1..3) {
                     for (oz in -1..1) {
@@ -72,11 +69,9 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
                         val isLeaves = state.`is`(net.minecraft.tags.BlockTags.LEAVES)
                         val isLogs = state.`is`(net.minecraft.tags.BlockTags.LOGS)
                         
-                        // Kiểm tra xem block có thuộc mod TC không (để giữ lại)
                         val regName = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.block)
                         val isTcBlock = regName.namespace == "tc" || regName.namespace == "pokemonai"
                         
-                        // Chỉ phá hủy khi nó là lá cây hoặc khối gỗ, và không thuộc mod TC
                         if (!isTcBlock && (isLeaves || isLogs)) {
                             level.destroyBlock(checkPos, true)
                         }
@@ -86,7 +81,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
         }
     }
 
-    // A* Pathfinding method through water
     fun findWaterPath(level: ServerLevel, start: BlockPos, end: BlockPos): List<BlockPos>? {
         val maxNodes = 1000
         val openSet = java.util.PriorityQueue<PathNode>(compareBy { it.f })
@@ -180,7 +174,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
         fun tick(level: Level, pos: BlockPos, state: BlockState, entity: DragonGateBottomBlockEntity) {
             if (level !is ServerLevel) return
 
-            // Render particles for players holding the block
             val player = level.getNearestPlayer(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble(), 20.0, false)
             if (player != null) {
                 val mainItem = player.mainHandItem.item
@@ -190,10 +183,8 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
                     offItem == com.toancao.pokemonai.registry.BlockRegistry.DRAGON_GATE_BOTTOM_BLOCK.asItem() || 
                     offItem == com.toancao.pokemonai.registry.BlockRegistry.DRAGON_GATE_TOP_BLOCK.asItem()) {
                     
-                    // Box indicator
                     level.sendParticles(ParticleTypes.END_ROD, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, 1, 0.0, 0.0, 0.0, 0.0)
                     
-                    // Calculate path using A* through water
                     val target = entity.topPos
                     if (target != null) {
                         entity.pathUpdateTicks++
@@ -223,7 +214,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
                                 }
                             }
                         } else if (path == null && level.random.nextInt(10) == 0) {
-                            // If blocked, show an indicator
                             level.sendParticles(ParticleTypes.ANGRY_VILLAGER, pos.x + 0.5, pos.y + 1.0, pos.z + 0.5, 1, 0.0, 0.0, 0.0, 0.0)
                         }
                     }
@@ -232,7 +222,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
 
             if (com.toancao.pokemonai.events.DragonGateEvent.currentPhase != com.toancao.pokemonai.events.DragonGateEvent.EventPhase.SWIMMING) return
 
-            // Every 100 ticks (5 seconds) during the event
             if (level.server.tickCount % 100 != 0) return
 
             entity.spawnMagikarps(level)
@@ -243,12 +232,11 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
 
     private fun spawnMagikarps(level: ServerLevel) {
         val startPos = this.blockPos
-        val endPos = this.topPos ?: return // Needs a top block to spawn
+        val endPos = this.topPos ?: return
 
         var topR10 = 0
         var topR100 = 0
 
-        // Check Top constraints
         val topBounds = net.minecraft.world.phys.AABB(endPos).inflate(100.0)
         val topEntities = level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity::class.java, topBounds) { e ->
             com.toancao.pokemonai.compat.CobblemonBridge.checkIsPokemonEntity(e) && e.tags.contains("dragon_gate_challenger")
@@ -256,15 +244,14 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
 
         for (p in topEntities) {
             val distSqr = p.distanceToSqr(endPos.x + 0.5, p.y, endPos.z + 0.5)
-            if (distSqr <= 100.0) { // R=10 (10^2 = 100)
+            if (distSqr <= 100.0) {
                 topR10++
                 topR100++
-            } else if (distSqr <= 10000.0) { // R=100 (100^2 = 10000)
+            } else if (distSqr <= 10000.0) {
                 topR100++
             }
         }
 
-        // Check Bottom constraints
         val bottomBounds = net.minecraft.world.phys.AABB(startPos).inflate(10.0)
         val bottomEntities = level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity::class.java, bottomBounds) { e ->
             com.toancao.pokemonai.compat.CobblemonBridge.checkIsPokemonEntity(e) && e.tags.contains("dragon_gate_challenger")
@@ -275,7 +262,7 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
         if (topR100 >= 40) return
         if (bottomCount > 10) return
 
-        val amount = 3 // Exactly 3 per 5 seconds
+        val amount = 3
 
         for (i in 0 until amount) {
             var spawnPos = startPos
@@ -295,7 +282,6 @@ class DragonGateBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntit
                 if (spawnPos != startPos) break
             }
 
-            // Complex Rarity logic:
             val isSuperRare = level.random.nextFloat() < 0.001f
             val isShiny = isSuperRare || level.random.nextFloat() < 0.01f
 

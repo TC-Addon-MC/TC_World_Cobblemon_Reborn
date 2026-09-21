@@ -38,7 +38,6 @@ class DragonGateWaypointBlockEntity(pos: BlockPos, state: BlockState) : BlockEnt
         fun tick(level: Level, pos: BlockPos, state: BlockState, entity: DragonGateWaypointBlockEntity) {
             if (level !is ServerLevel) return
 
-            // Render particles for players holding the block
             val player = level.getNearestPlayer(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble(), 20.0, false)
             if (player != null) {
                 val mainItem = player.mainHandItem.item
@@ -53,10 +52,8 @@ class DragonGateWaypointBlockEntity(pos: BlockPos, state: BlockState) : BlockEnt
                     offItem == com.toancao.pokemonai.registry.BlockRegistry.DRAGON_GATE_WAYPOINT_BLOCK.asItem()
 
                 if (holdsDragonGateItem) {
-                    // Box indicator (using different particle for waypoint: ENCHANT)
                     level.sendParticles(ParticleTypes.ENCHANT, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, 3, 0.2, 0.2, 0.2, 0.05)
                     
-                    // Calculate path using A* through water
                     val target = entity.nextPos
                     if (target != null) {
                         entity.pathUpdateTicks++
@@ -86,7 +83,6 @@ class DragonGateWaypointBlockEntity(pos: BlockPos, state: BlockState) : BlockEnt
                                 }
                             }
                         } else if (path == null && level.random.nextInt(10) == 0) {
-                            // If blocked, show an indicator
                             level.sendParticles(ParticleTypes.ANGRY_VILLAGER, pos.x + 0.5, pos.y + 1.0, pos.z + 0.5, 1, 0.0, 0.0, 0.0, 0.0)
                         }
                     }

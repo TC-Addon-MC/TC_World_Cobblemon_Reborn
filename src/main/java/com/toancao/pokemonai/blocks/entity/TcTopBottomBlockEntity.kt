@@ -20,14 +20,12 @@ class TcTopBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(Blo
             
             entity.ticksLived++
             
-            // Wait a few ticks to ensure the entire structure is generated
             if (entity.ticksLived < 5) return
             
             if (level.getBlockState(pos).block !== BlockRegistry.TC_TOP_BOTTOM_BLOCK) return
             
             println("[TcTopBottom] Block at $pos is starting to process structure!")
             
-            // Master block takes control and processes the whole structure
             processStructure(level, pos)
         }
         
@@ -63,21 +61,16 @@ class TcTopBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(Blo
             var bottoms = foundBlocks.filter { it.y - bottomY <= 5 && !tops.contains(it) }.toMutableList()
             
             if (topY - bottomY <= 10) {
-                // If the height difference is small, we assume there are only top blocks.
                 tops = foundBlocks.toMutableList()
                 bottoms.clear()
             }
             
-            // Remove all tc_top_bottom blocks first
             for (p in foundBlocks) {
                 level.removeBlock(p, false)
             }
             
             val actualBottoms = mutableListOf<BlockPos>()
             if (bottoms.isEmpty()) {
-                // Calculate bottom block positions based on the top block, using the provided sample offsets
-                // Top: (0, 21, 1) -> Bottom 1: (32, 3, 4) => dx=32, dy=-18, dz=3
-                // Top: (0, 21, 1) -> Bottom 2: (-31, 3, 11) => dx=-31, dy=-18, dz=10
                 for (top in tops) {
                     val b1 = top.offset(32, -18, 3)
                     val b2 = top.offset(-31, -18, 10)
@@ -88,26 +81,21 @@ class TcTopBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(Blo
                 actualBottoms.addAll(bottoms)
             }
             
-            // Place top blocks
             for (p in tops) {
                 println("[TcTopBottom] Placing TOP at $p")
                 level.setBlock(p, BlockRegistry.DRAGON_GATE_TOP_BLOCK.defaultBlockState(), 3)
                 level.sendParticles(ParticleTypes.EXPLOSION, p.x + 0.5, p.y + 0.5, p.z + 0.5, 5, 0.5, 0.5, 0.5, 0.1)
             }
             
-            // Place bottom blocks and connect them
             for (p in actualBottoms) {
                 println("[TcTopBottom] Placing BOTTOM at $p")
                 level.setBlock(p, BlockRegistry.DRAGON_GATE_BOTTOM_BLOCK.defaultBlockState(), 3)
                 level.sendParticles(ParticleTypes.EXPLOSION, p.x + 0.5, p.y + 0.5, p.z + 0.5, 5, 0.5, 0.5, 0.5, 0.1)
                 
-                // For each bottom, find nearest top
                 val nearestTop = tops.minByOrNull { it.distSqr(p) }
                 if (nearestTop != null) {
-                    // Calculate path and place waypoints
                     val firstTarget = calculateAndPlaceWaypoints(level, p, nearestTop)
                     
-                    // Link the bottom to the first target (which could be the first waypoint, or the top if no waypoints)
                     val be = level.getBlockEntity(p)
                     if (be is DragonGateBottomBlockEntity) {
                         be.updateTopPos(firstTarget)
@@ -116,7 +104,6 @@ class TcTopBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(Blo
             }
         }
         
-        // Returns the first target (either the first waypoint, or the endPos if no waypoints)
         private fun calculateAndPlaceWaypoints(level: ServerLevel, start: BlockPos, end: BlockPos): BlockPos {
             val path = findWaterPath(level, start, end) ?: return end
             
@@ -124,7 +111,7 @@ class TcTopBottomBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(Blo
             var step = 0
             for (i in 1 until path.size - 1) {
                 step++
-                if (step >= 4) { // Place a waypoint every 4 blocks
+                if (step >= 4) {
                     waypointSpaced.add(path[i])
                     step = 0
                 }

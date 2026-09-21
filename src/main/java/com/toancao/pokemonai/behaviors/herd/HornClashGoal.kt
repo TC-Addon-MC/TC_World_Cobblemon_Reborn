@@ -18,11 +18,11 @@ import java.util.*
 class HornClashGoal(private val entity: PokemonEntity) : Goal() {
 
     enum class ClashPhase {
-        LOOK_LOCK,      // 1. Cùng nhìn nhau khóa mục tiêu (1.5s)
-        STEP_BACK,      // 2. Cùng lùi lại 2 bước tạo cự ly lấy đà (1.25s)
-        STOMP_WINDUP,   // 3. Cùng dậm móng nhả khói bụi (1.5s)
-        CLASH_CHARGE,   // 4. CÙNG PHI NƯỚC ĐẠI lao vào nhau va sừng
-        RECOIL_REST,    // 5. Cùng nảy lùi lại đứng thở nghỉ ngơi (2.0s)
+        LOOK_LOCK,
+        STEP_BACK,
+        STOMP_WINDUP,
+        CLASH_CHARGE,
+        RECOIL_REST,
         FINISHED
     }
 
@@ -57,7 +57,6 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
         fun endSession(session: ClashSession) {
             activeSessions.remove(session.entityA.uuid)
             activeSessions.remove(session.entityB.uuid)
-            // Cooldown dài (1 - 2 phút) để hành vi diễn ra tự nhiên, hiếm hoi
             val cdA = session.entityA.random.nextInt(1200, 2400)
             val cdB = session.entityB.random.nextInt(1200, 2400)
             cooldowns[session.entityA.uuid] = cdA
@@ -74,23 +73,19 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
         val data = entity.getHerdData()
         if (!data.isInHerd || data.isStampeding) return false
 
-        // 1. Nếu đã có session đang chạy (do đối tác khởi xướng) -> Tham gia ngay
         val existingSession = getSession(entity)
         if (existingSession != null && existingSession.isAlive()) return true
 
-        // 2. Giảm cooldown nếu có
         val currentCd = cooldowns[entity.uuid] ?: 0
         if (currentCd > 0) {
             cooldowns[entity.uuid] = currentCd - 1
             return false
         }
 
-        // 3. Tỉ lệ kích hoạt tự nhiên thấp (1/60 mỗi lần kiểm tra) để tránh va sừng liên tục
         if (entity.random.nextInt(60) != 0) {
             return false
         }
 
-        // 4. Tìm 1 đối tác Tauros gần đó (cự ly 3.0 - 7.0 block) cùng bầy
         val clashRadius = 7.0 * entity.pokemon.scaleModifier.coerceIn(0.85f, 1.15f)
         val box = AABB.ofSize(entity.position(), clashRadius * 2.0, 6.0, clashRadius * 2.0)
         val candidate = entity.level().getEntitiesOfClass(PokemonEntity::class.java, box) {
@@ -102,7 +97,6 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
             !isBusy(it) && entity.distanceToSqr(it) in 9.0..(maxDistance * maxDistance)
         }.firstOrNull() ?: return false
 
-        // Khởi tạo phiên giao đấu đồng bộ cho CẢ 2 CON
         return tryStartSession(entity, candidate) != null
     }
 
@@ -120,12 +114,10 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
         val partner = session.getPartner(entity)
         val level = entity.level() as? ServerLevel
 
-        // Chỉ để 1 con đại diện tăng tick cho session để không bị x2 tốc độ
         if (entity == session.entityA) {
             session.stateTicks++
         }
 
-        // Luôn quay mặt nhìn thẳng vào mắt nhau
         lookAtPartner(partner)
 
         when (session.phase) {
@@ -133,7 +125,6 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
                 entity.navigation.stop()
                 entity.isSprinting = false
 
-                // 1. Nhìn nhau khóa mục tiêu trong 30 tick (1.5 giây)
                 if (session.stateTicks >= 30) {
                     if (entity == session.entityA) {
                         session.phase = ClashPhase.STEP_BACK
@@ -144,7 +135,6 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
 
             ClashPhase.STEP_BACK -> {
                 entity.isSprinting = false
-                // 2. Cùng lùi lại về phía sau so với đối tác bằng navigation
                 val dir = entity.position().subtract(partner.position()).normalize()
                 val backTargetX = entity.x + dir.x * 2.0
                 val backTargetZ = entity.z + dir.z * 2.0
@@ -163,7 +153,6 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
                 entity.navigation.stop()
                 entity.isSprinting = false
 
-                // 3. Cùng dậm móng cào đất nhả khói bụi trong 30 tick (1.5 giây)
                 if (session.stateTicks % 6 == 0 && level != null) {
                     level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, entity.x, entity.y + 0.1, entity.z, 3, 0.2, 0.0, 0.2, 0.02)
                 }
@@ -177,15 +166,12 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
             }
 
             ClashPhase.CLASH_CHARGE -> {
-                // 4. CẢ 2 CON CÙNG BẬT SPRINTING VÀ LAO ĐẦU VÀO NHAU
                 entity.isSprinting = true
 
-                // Đích đến là điểm chính giữa (Midpoint) của 2 con
                 val midX = (entity.x + partner.x) / 2.0
                 val midZ = (entity.z + partner.z) / 2.0
                 entity.navigation.moveTo(midX, entity.y, midZ, 0.70)
 
-                // Kiểm tra va chạm sừng khi 2 đầu chạm nhau (< 2.0 block)
                 if (entity.distanceToSqr(partner) < 4.0 || session.stateTicks >= 25) {
                     entity.isSprinting = false
                     entity.navigation.stop()
@@ -198,7 +184,6 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
                         level.sendParticles(ParticleTypes.CRIT, contactX, entity.y + 0.8, contactZ, 25, 0.25, 0.2, 0.25, 0.15)
                     }
 
-                    // Nảy lùi lại một chút sau cú va chạm mạnh
                     val recoilDir = entity.position().subtract(partner.position()).normalize()
                     entity.knockback(0.4, -recoilDir.x, -recoilDir.z)
 
@@ -213,7 +198,6 @@ class HornClashGoal(private val entity: PokemonEntity) : Goal() {
                 entity.isSprinting = false
                 entity.navigation.stop()
 
-                // 5. Đứng thở nghỉ ngơi trong 40 tick (2.0 giây)
                 if (session.stateTicks >= 40) {
                     if (entity == session.entityA) {
                         session.phase = ClashPhase.FINISHED

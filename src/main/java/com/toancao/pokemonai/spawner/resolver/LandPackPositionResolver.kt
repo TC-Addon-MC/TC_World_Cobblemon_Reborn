@@ -30,7 +30,7 @@ object LandPackPositionResolver : PackPositionResolver {
                     Pair(Math.cos(angle) * radius, Math.sin(angle) * radius)
                 }
                 FormationType.COLUMN -> {
-                    val angle = 0.0 // Theo trục Z
+                    val angle = 0.0
                     Pair((Random.nextDouble() - 0.5) * 2.0, -(i + 1) * 2.5)
                 }
                 FormationType.V_SHAPE -> {
@@ -44,7 +44,6 @@ object LandPackPositionResolver : PackPositionResolver {
             val targetZ = (center.z + dz).toInt()
             val surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, targetX, targetZ)
 
-            // Đảm bảo không rơi vào khoảng không vô tận
             val validY = if (surfaceY > level.minBuildHeight) surfaceY.toDouble() else center.y
             result.add(Vec3(targetX + 0.5, validY, targetZ + 0.5))
         }

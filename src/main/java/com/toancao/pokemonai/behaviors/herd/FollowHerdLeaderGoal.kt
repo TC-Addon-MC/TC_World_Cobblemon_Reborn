@@ -41,7 +41,6 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         leader = found
         val distSq = entity.distanceToSqr(found)
 
-        // Bắt đầu di chuyển bám theo khi cách xa thủ lĩnh > desiredDist + 6.0 block
         val desiredDist = getDesiredDistanceBehind(data.formationIndex, found)
         val triggerDist = desiredDist + 6.0
         return distSq > (triggerDist * triggerDist)
@@ -59,7 +58,6 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         val distSq = entity.distanceToSqr(currentLeader)
         val desiredDist = getDesiredDistanceBehind(data.formationIndex, currentLeader)
 
-        // Dừng lại khi đã bám sát vị trí hàng ngũ phía sau thủ lĩnh
         return distSq > (desiredDist * desiredDist) && distSq < 3600.0
     }
 
@@ -82,33 +80,29 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         val data = entity.getHerdData()
         val fIndex = data.formationIndex.coerceAtLeast(1)
 
-        // === ĐỘI HÌNH CHỮ V / HÀNG NÊM CHUẨN XÁC THEO HƯỚNG MẶT CỦA THỦ LĨNH ===
         val leaderYawRad = Math.toRadians(currentLeader.yRot.toDouble())
         val forwardX = -Math.sin(leaderYawRad)
         val forwardZ = Math.cos(leaderYawRad)
         val rightX = Math.cos(leaderYawRad)
         val rightZ = Math.sin(leaderYawRad)
 
-        val row = (fIndex + 1) / 2          // Hàng 1, Hàng 2, Hàng 3...
-        val side = if (fIndex % 2 == 1) 1.0 else -1.0 // So le Cánh Phải / Cánh Trái
+        val row = (fIndex + 1) / 2
+        val side = if (fIndex % 2 == 1) 1.0 else -1.0
 
         val spacing = sizeSpacingModifier(currentLeader)
         val behindDist = (3.5 + row * 2.5) * spacing
         val lateralDist = side * (row * 2.0) * spacing
 
-        // Tọa độ mục tiêu luôn nằm PHÍA SAU thủ lĩnh:
         val targetX = currentLeader.x - (forwardX * behindDist) + (rightX * lateralDist)
         val targetZ = currentLeader.z - (forwardZ * behindDist) + (rightZ * lateralDist)
 
         val distSq = entity.distanceToSqr(currentLeader)
         val speedModifier = if (distSq > 400.0) 0.70 else 0.55
 
-        // Hỗ trợ tự động bước/nhảy lên khi gặp gờ đá dốc cao hơn phía trước
         if (entity.horizontalCollision && entity.onGround()) {
             entity.deltaMovement = net.minecraft.world.phys.Vec3(entity.deltaMovement.x, 0.35, entity.deltaMovement.z)
         }
 
-        // Hỗ trợ bước xuống dốc / bậc thềm thấp hơn phía trước
         val level = entity.level()
         val targetDir = net.minecraft.world.phys.Vec3(targetX - entity.x, 0.0, targetZ - entity.z).normalize()
         if (targetDir.lengthSqr() > 0.01) {
@@ -119,15 +113,13 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
         }
 
         if (--timeToRecalcPath <= 0) {
-            timeToRecalcPath = 15 // Cập nhật mỗi 0.75s
+            timeToRecalcPath = 15
 
-            // Lấy độ cao mặt đất chuẩn xác tại điểm đích
             val blockX = targetX.toInt()
             val blockZ = targetZ.toInt()
             val groundY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockX, blockZ).toDouble()
             val targetPos = BlockPos(blockX, groundY.toInt(), blockZ)
 
-            // Giao tiếp trực tiếp với Não (Brain) chuẩn Cobblemon gốc
             entity.brain.setMemory(MemoryModuleType.WALK_TARGET, WalkTarget(targetPos, speedModifier.toFloat(), 1))
             entity.brain.setMemory(MemoryModuleType.LOOK_TARGET, BlockPosTracker(targetPos))
 
@@ -138,7 +130,6 @@ class FollowHerdLeaderGoal(private val entity: PokemonEntity) : Goal() {
     override fun stop() {
         leader = null
         entity.attributes.getInstance(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT)?.baseValue = 0.6
-        // Trả lại hoàn toàn quyền tự do đi dạo cho Cobblemon Brain
         entity.brain.eraseMemory(MemoryModuleType.WALK_TARGET)
         entity.brain.eraseMemory(MemoryModuleType.LOOK_TARGET)
         entity.navigation.stop()

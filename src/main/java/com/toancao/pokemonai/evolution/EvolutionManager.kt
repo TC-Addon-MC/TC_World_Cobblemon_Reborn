@@ -18,12 +18,10 @@ object EvolutionManager {
     private val evolvingUntil = mutableMapOf<java.util.UUID, Long>()
     private val pendingEvolutions = mutableMapOf<java.util.UUID, PendingEvolution>()
 
-    // Lên lịch thực thi một hành động sau một khoảng thời gian delay tính bằng tick.
     fun scheduleTask(delayTicks: Int, action: () -> Unit) {
         scheduledTasks.add(ScheduledTask(delayTicks, action))
     }
 
-    // Đăng ký sự kiện tick của server để xử lý các task và kiểm tra tiến hóa định kỳ.
     fun register() {
         CobblemonEvents.EVOLUTION_COMPLETE.subscribe { event ->
             val entity = event.pokemon.entity ?: return@subscribe
@@ -58,7 +56,6 @@ object EvolutionManager {
         }
     }
 
-    // Lặp qua tất cả entity trong thế giới, tìm Pokemon hoang dã để kiểm tra điều kiện tiến hóa.
     private fun tick(world: ServerLevel) {
         val entities = world.getAllEntities().toList()
         entities.forEach { entity ->
@@ -71,7 +68,6 @@ object EvolutionManager {
         }
     }
 
-    // Lấy luật tiến hóa của Pokemon theo loài và áp dụng nếu đạt đủ điều kiện cảm xúc, trạng thái.
     private fun checkEvolution(pokemon: PokemonEntity, entity: Entity) {
         val species = CobblemonBridge.getSpeciesName(pokemon)
         val rules = EvolutionRegistry.getRules(species)
@@ -89,12 +85,10 @@ object EvolutionManager {
         }
     }
 
-    // Kích hoạt quá trình tiến hóa bắt buộc và áp dụng các thay đổi chỉ số sau khi tiến hóa.
     private fun evolve(pokemon: PokemonEntity, result: EvolutionResult) {
         forceEvolve(pokemon, result.targetSpecies, result.modifiers)
     }
 
-    // Ép Pokemon hoang dã tiến hóa thành loài mới với hiệu ứng xoáy và ánh sáng.
     fun forceEvolve(
         pokemon: PokemonEntity,
         targetSpecies: String,
@@ -102,11 +96,9 @@ object EvolutionManager {
     ) {
         if (!CobblemonBridge.isWild(pokemon)) return
 
-        // Gọi API Event
         val allow = com.toancao.pokemonai.api.PokemonAIEvents.BEFORE_FORCE_EVOLVE.invoker().onBeforeForceEvolve(pokemon, targetSpecies)
         if (!allow) return
 
-        // Native evolution lasts several seconds; use a timeout so a cancelled event can retry later.
         val pokemonId = CobblemonBridge.getEntityUUID(pokemon)
         val level = CobblemonBridge.getLevel(pokemon) as? ServerLevel ?: return
         if ((evolvingUntil[pokemonId] ?: 0L) > level.gameTime) return

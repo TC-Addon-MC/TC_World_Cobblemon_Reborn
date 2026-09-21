@@ -30,7 +30,6 @@ class HerdSharedAggroGoal(private val entity: PokemonEntity) : Goal() {
         val level = entity.level() as? ServerLevel ?: return false
         val box = AABB.ofSize(entity.position(), 80.0, 32.0, 80.0)
 
-        // Quét xem trong đàn có con nào đang có mục tiêu là NGƯỜI CHƠI
         val pack = level.getEntitiesOfClass(PokemonEntity::class.java, box) {
             it.getHerdData().herdId == herdId && it.target is net.minecraft.world.entity.player.Player && it.target!!.isAlive
         }
@@ -38,7 +37,6 @@ class HerdSharedAggroGoal(private val entity: PokemonEntity) : Goal() {
         val angryMember = pack.firstOrNull() ?: return false
         val targetEntity = angryMember.target ?: return false
 
-        // Nếu đàn chưa phát động Stampede -> Khóa HƯỚNG và phát động Đại Xung Phong cho TOÀN BỘ ĐÀN!
         if (!data.isStampeding) {
             val dirVec = targetEntity.position().subtract(entity.position()).normalize()
             triggerHerdStampedeDirection(level, herdId, entity.position(), dirVec, box)
@@ -68,22 +66,19 @@ class HerdSharedAggroGoal(private val entity: PokemonEntity) : Goal() {
             for (member in allMembers) {
                 val mData = member.getHerdData()
                 mData.isStampeding = true
-                mData.stampedeTicksRemaining = 200 // ~10 giây chạy đầm chắc
+                mData.stampedeTicksRemaining = 200
 
                 mData.stampedeDirX = dirX
                 mData.stampedeDirZ = dirZ
 
                 if (mData.isLeader) {
-                    // 1. Con đầu đàn phi lên trước tiên phong ngay lập tức!
                     mData.stampedeDelayTicks = 0
                 } else {
-                    // 2. Toàn bộ đàn em nối đuôi nhau chạy theo sau
                     mData.stampedeDelayTicks = 12 + (mData.formationIndex * 2).coerceAtMost(30)
                 }
                 member.setHerdData(mData)
             }
 
-            // Hiệu ứng âm thanh gầm vang báo động toàn bầy
             level.playSound(null, net.minecraft.core.BlockPos.containing(centerPos), SoundEvents.RAVAGER_ROAR, SoundSource.NEUTRAL, 1.8f, 0.9f)
             level.sendParticles(ParticleTypes.ANGRY_VILLAGER, centerPos.x, centerPos.y + 1.5, centerPos.z, 15, 1.0, 0.5, 1.0, 0.1)
         }

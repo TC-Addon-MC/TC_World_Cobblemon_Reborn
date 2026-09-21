@@ -11,7 +11,6 @@ import net.minecraft.world.entity.MoverType
 import net.minecraft.world.phys.Vec3
 import java.util.UUID
 
-// Tầng vật lý DUY NHẤT: quản lý toàn bộ deltaMovement, gravity, flyingFlag cho mọi session bay
 object FlightEngine {
 
     private val activeSessions = mutableMapOf<UUID, FlightSession>()
@@ -21,21 +20,24 @@ object FlightEngine {
         if (registered) return
         registered = true
         ServerTickEvents.END_SERVER_TICK.register { _ ->
-            val toRemove = mutableListOf<UUID>()
-            for ((uuid, session) in activeSessions) {
+            val snapshot = activeSessions.entries.toList()
+            val toRemove = mutableListOf<Pair<UUID, FlightSession>>()
+            for ((uuid, session) in snapshot) {
+                if (activeSessions[uuid] !== session) continue
                 if (!session.isAlive() || session.state == InternalFlightState.DONE) {
-                    toRemove.add(uuid)
+                    toRemove.add(uuid to session)
                 } else {
                     tickSession(session)
-                    if (session.state == InternalFlightState.DONE) toRemove.add(uuid)
+                    if (activeSessions[uuid] === session && session.state == InternalFlightState.DONE) {
+                        toRemove.add(uuid to session)
+                    }
                 }
             }
-            toRemove.forEach { 
-                val session = activeSessions[it]
-                if (session != null) {
+            toRemove.forEach { (uuid, session) ->
+                if (activeSessions[uuid] === session) {
+                    activeSessions.remove(uuid)
                     com.toancao.pokemonai.api.PokemonAIEvents.FLIGHT_END.invoker().onFlightEnd(session.pokemon)
                 }
-                activeSessions.remove(it) 
             }
         }
     }
@@ -46,61 +48,121 @@ object FlightEngine {
         hover: Boolean = false,
         config: FlightConfig = FlightConfig()
     ): Boolean {
+        return flyCommand(pokemon, target, hover, config, FlightControlOwner.DIRECTED)
+    }
+
+    /**
+     * Phase 3: autonomous AI dùng đường riêng, không ghi đè session DIRECTED.
+     * Chỉ internal/package để public API directed giữ semantics ưu tiên.
+     */
+    fun flyAutonomouslyTo(
+        pokemon: PokemonEntity,
+        target: Vec3,
+        hover: Boolean = false,
+        config: FlightConfig = FlightConfig()
+    ): Boolean {
+        return flyCommand(pokemon, target, hover, config, FlightControlOwner.AUTONOMOUS)
+    }
+
+    private fun flyCommand(
+        pokemon: PokemonEntity,
+        target: Vec3,
+        hover: Boolean,
+        config: FlightConfig,
+        owner: FlightControlOwner
+    ): Boolean {
         val existingSession = activeSessions[pokemon.uuid]
         if (existingSession != null) {
+            if (owner == FlightControlOwner.AUTONOMOUS && existingSession.owner == FlightControlOwner.DIRECTED) {
+                return false
+            }
             existingSession.target = target
             existingSession.hover = hover
             existingSession.config = config
+            existingSession.owner = owner
             existingSession.state = InternalFlightState.FLYING
         } else {
-            val allow = com.toancao.pokemonai.api.PokemonAIEvents.FLIGHT_START.invoker().onFlightStart(pokemon, target, hover)
-            if (!allow) return false
+            if (owner == FlightControlOwner.DIRECTED) {
+                val allow = com.toancao.pokemonai.api.PokemonAIEvents.FLIGHT_START.invoker().onFlightStart(pokemon, target, hover)
+                if (!allow) return false
+            }
             val mob = pokemon as net.minecraft.world.entity.Mob
             mob.deltaMovement = Vec3.ZERO
-            activeSessions[pokemon.uuid] = FlightSession(pokemon, target, hover, config)
+            val session = FlightSession(pokemon, target, hover, config)
+            session.owner = owner
+            activeSessions[pokemon.uuid] = session
         }
         return true
     }
 
-    // Lệnh ép hạ cánh mượt mà xuống mặt đất
     fun land(
         pokemon: PokemonEntity,
         config: FlightConfig = FlightConfig(),
-        avoidWater: Boolean = true
+        avoidWater: Boolean = true,
+        owner: FlightControlOwner = FlightControlOwner.AUTONOMOUS,
+        resetRetries: Boolean = true
     ) {
         val existingSession = activeSessions[pokemon.uuid]
+        if (existingSession != null && owner == FlightControlOwner.AUTONOMOUS &&
+            existingSession.owner == FlightControlOwner.DIRECTED
+        ) {
+            return
+        }
 
         val mob = pokemon as net.minecraft.world.entity.Mob
         val level = mob.level() ?: return
-        
-        // Hướng bay lướt xuống phía trước
-        val yaw = Math.toRadians(mob.yRot.toDouble())
-        val dirX = -kotlin.math.sin(yaw)
-        val dirZ = kotlin.math.cos(yaw)
-        
-        val targetX = mob.x + dirX * 15.0
-        val targetZ = mob.z + dirZ * 15.0
-        val groundY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, targetX.toInt(), targetZ.toInt()).toDouble()
 
-        
-        val target = Vec3(targetX, groundY, targetZ)
+        val safeSite = try {
+            com.toancao.pokemonai.flight.navigation.LandingSiteFinder.findLandingSite(pokemon)
+        } catch (_: Exception) {
+            null
+        }
+        val target: Vec3
+        val siteFound = safeSite != null
+        if (siteFound) {
+            target = safeSite
+        } else if (!avoidWater) {
+            val yaw = Math.toRadians(mob.yRot.toDouble())
+            val dirX = -kotlin.math.sin(yaw)
+            val dirZ = kotlin.math.cos(yaw)
+            val targetX = mob.x + dirX * 15.0
+            val targetZ = mob.z + dirZ * 15.0
+            val groundY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, targetX.toInt(), targetZ.toInt()).toDouble()
+            target = Vec3(targetX, groundY, targetZ)
+        } else {
+            if (existingSession != null) {
+                existingSession.needsBounce = true
+            }
+            return
+        }
         
         if (existingSession != null) {
             existingSession.target = target
             existingSession.hover = false
             existingSession.config = config
+            existingSession.owner = owner
             existingSession.state = InternalFlightState.FLYING
             existingSession.isSearchingLand = avoidWater
             existingSession.needsBounce = false
+            if (resetRetries) existingSession.landRetries = 0
         } else {
             mob.deltaMovement = Vec3.ZERO
             val newSession = FlightSession(pokemon, target, false, config)
+            newSession.owner = owner
             newSession.isSearchingLand = avoidWater
+            if (!resetRetries) newSession.landRetries = 1
             activeSessions[pokemon.uuid] = newSession
         }
     }
 
-    // Dừng bay ngay, trả về vật lý tự nhiên
+    /** Dọn session khi entity unload mà không phát movement lên entity đã unload. */
+    fun removeForUnload(uuid: java.util.UUID) {
+        activeSessions.remove(uuid)
+    }
+
+    fun isDirectedFlight(pokemon: PokemonEntity): Boolean =
+        activeSessions[pokemon.uuid]?.owner == FlightControlOwner.DIRECTED
+
     fun stopFlight(pokemon: PokemonEntity) {
         val session = activeSessions.remove(pokemon.uuid)
         if (session != null) {
@@ -110,6 +172,10 @@ object FlightEngine {
     }
 
     fun hasActiveFlight(pokemon: PokemonEntity): Boolean = activeSessions.containsKey(pokemon.uuid)
+
+    fun sessionCount(): Int = activeSessions.size
+
+    fun sessionOwner(pokemon: PokemonEntity): FlightControlOwner? = activeSessions[pokemon.uuid]?.owner
 
     fun suspendForRiding(pokemon: PokemonEntity) {
         val session = activeSessions[pokemon.uuid]
@@ -121,7 +187,6 @@ object FlightEngine {
 
     fun needsBounce(pokemon: PokemonEntity): Boolean = activeSessions[pokemon.uuid]?.needsBounce == true
 
-    // Tick logic theo đúng thứ tự ưu tiên từ kế hoạch
     private fun tickSession(session: FlightSession) {
         val mob = session.pokemon as net.minecraft.world.entity.Mob
         if (mob.isVehicle) {
@@ -131,10 +196,8 @@ object FlightEngine {
         val p = session.config
         session.ticksInCurrentState++
 
-        // ── Bước 1: Kiểm tra điều kiện rớt/dừng ────────────────────────────
         if (p.dropOnHit && mob.hurtTime > 0) {
-            // Thay vì rớt như cục đá, ép hạ cánh khẩn cấp xuống đất
-            land(session.pokemon, p, avoidWater = false)
+            land(session.pokemon, p, avoidWater = false, owner = session.owner)
             return
         }
 
@@ -148,7 +211,6 @@ object FlightEngine {
             return
         }
 
-        // ── Bước 2: Xử lý theo state hiện tại ──────────────────────────────
         when (session.state) {
             InternalFlightState.FLYING -> tickFlying(mob, session)
             InternalFlightState.ARRIVED_HOVER -> tickHovering(mob, session)
@@ -165,13 +227,11 @@ object FlightEngine {
         val isPhysicallyOnGround = mob.onGround() || 
             (!stateBelow.isAir && !stateBelow.getCollisionShape(level, posBelow).isEmpty)
 
-        // Chỉ tự động kết thúc nếu đang chủ động hạ cánh tìm đất
         if (session.isSearchingLand && (isPhysicallyOnGround || mob.isInWater || mob.isUnderWater)) {
             terminateSession(session)
             return
         }
 
-        // Nếu đang trong chế độ hạ cánh tìm đất, và đang hướng xuống, quẹt đường thẳng 5 block dưới chân
         if (session.isSearchingLand && session.target.y <= mob.y) {
             var isWaterBelow = false
             var foundGround = false
@@ -191,7 +251,6 @@ object FlightEngine {
             }
 
             if (foundGround && isWaterBelow) {
-                // Đã tìm thấy mặt nước dưới chân -> Hủy hạ cánh, báo hiệu cần nảy cho AI
                 session.needsBounce = true
                 return
             }
@@ -210,8 +269,13 @@ object FlightEngine {
 
         if (horizDist < p.arriveThresholdHoriz && vertDist < p.arriveThresholdVert) {
             if (session.isSearchingLand) {
-                // Đã bay đến điểm tìm kiếm nhưng vẫn chưa thấy đất, tiếp tục tìm kiếm
-                land(session.pokemon, p, true)
+                session.landRetries++
+                if (session.landRetries >= 3) {
+                    session.needsBounce = true
+                    session.isSearchingLand = false
+                    return
+                }
+                land(session.pokemon, p, true, owner = session.owner, resetRetries = false)
                 return
             }
 
@@ -238,7 +302,6 @@ object FlightEngine {
         FlightHelpers.syncRotationFromVelocity(mob)
     }
 
-    // Lơ lửng tại đích: cố định cứng tại mục tiêu, không sway để tránh cảm giác bị kẹt
     private fun tickHovering(mob: net.minecraft.world.entity.Mob, session: FlightSession) {
         FlightHelpers.applyFlyingPhysics(session.pokemon)
         
@@ -252,7 +315,6 @@ object FlightEngine {
         mob.move(MoverType.SELF, mob.deltaMovement)
     }
 
-    // Rơi tự do: đợi chạm đất hoặc chạm nước thì kết thúc session
     private fun tickFalling(mob: net.minecraft.world.entity.Mob, session: FlightSession) {
         val level = mob.level()
         val posBelow = mob.blockPosition().below()
@@ -273,16 +335,13 @@ object FlightEngine {
         session.state = InternalFlightState.DONE
     }
 
-    // Tính tốc độ thực tế, có scale theo khoảng cách player nếu bật
     private fun resolveSpeed(mob: net.minecraft.world.entity.Mob, session: FlightSession): Double {
         var speed = session.config.flightSpeed
         if (session.config.speedPlayerScale) {
             val machine = CustomFlightManager.getMachine(mob.uuid)
             val dist = machine?.nearestDistance ?: Double.MAX_VALUE
             
-            // Nếu dist quá lớn (lớn hơn 128 block hoặc không có player), coi như xa tối đa -> ratio = 1.0
             val ratio = if (dist >= 128.0) 1.0 else (dist / 128.0).coerceIn(0.0, 1.0)
-            // Giảm tối đa 70% tốc độ (nhân với 0.3) khi ở xa
             speed *= (1.0 - ratio * 0.7)
         }
         return speed

@@ -44,11 +44,10 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                 com.toancao.pokemonai.utils.ParticleUtils.updateTornado(level, pos, elapsed)
                 if (ticksRemaining <= 1) com.toancao.pokemonai.utils.ParticleUtils.clearTornado(level, pos)
 
-                // Evolve exponentially using predefined accelerating thresholds within 600 ticks
                 val thresholds = listOf(100, 200, 280, 340, 390, 430, 460, 485, 505, 520, 535, 545, 555, 565, 575, 585, 595)
                 val stepIndex = thresholds.indexOf(elapsed)
                 if (stepIndex != -1) {
-                    val evolveAmount = 1 shl stepIndex // 1, 2, 4, 8, 16...
+                    val evolveAmount = 1 shl stepIndex
 
                     val radius = com.toancao.pokemonai.config.MagikarpConfigManager.config.maxMagikarpEvolutionRadius
                     val magikarps = findWaitingMagikarps(level, pos, radius)
@@ -60,7 +59,6 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                     }
                 }
 
-                // Force evolve all remaining at the very end (last 5 ticks)
                 if (ticksRemaining == 5) {
                     val radius = com.toancao.pokemonai.config.MagikarpConfigManager.config.maxMagikarpEvolutionRadius
                     val magikarps = findWaitingMagikarps(level, pos, radius)
@@ -86,27 +84,23 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
             
             val requiredLevel = com.toancao.pokemonai.config.MagikarpConfigManager.config.requiredLevelForEvolution
             if (pokemonData.level >= requiredLevel) {
-                // Nhảy lên cao (vận tốc ~1.2 đến 1.5 sẽ bay lên khoảng 4-6 block)
                 val baseVel = com.toancao.pokemonai.config.MagikarpConfigManager.config.jumpVelocityMin
                 val maxOffset = com.toancao.pokemonai.config.MagikarpConfigManager.config.jumpVelocityMaxOffset
                 var jumpVel = (baseVel + level.random.nextDouble() * maxOffset).toFloat()
 
-                // Bắn Event
                 jumpVel = com.toancao.pokemonai.api.PokemonAIEvents.ON_MAGIKARP_JUMP.invoker().onMagikarpJump(pokemonEntity, jumpVel)
-                if (jumpVel <= 0f) return // Bị mod khác cancel nhảy/tiến hóa
+                if (jumpVel <= 0f) return
 
                 entity.deltaMovement = entity.deltaMovement.add(0.0, jumpVel.toDouble(), 0.0)
                 entity.hasImpulse = true
                 entity.hurtMarked = true
                 
-                // Chờ 15 tick cho cá nhảy tới đỉnh rồi mới hóa rồng
                 com.toancao.pokemonai.evolution.EvolutionManager.scheduleTask(15) {
                     level.playSound(null, entity.blockPosition(), net.minecraft.sounds.SoundEvents.ENDER_DRAGON_GROWL, net.minecraft.sounds.SoundSource.NEUTRAL, 5.0f, 0.8f)
                     com.toancao.pokemonai.evolution.EvolutionManager.forceEvolve(pokemonEntity, "gyarados")
                     
                     entity.removeTag("waiting_for_evolution")
                     
-                    // Explode roof right when evolving
                 com.toancao.pokemonai.evolution.EvolutionManager.scheduleTask(50) {
                     for (dx in -3..3) {
                         for (dy in 0..15) {
@@ -122,7 +116,6 @@ class DragonGateTopBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(B
                 }
                 }
             } else {
-                // If it's somehow below level 20, it fails the challenge
                 entity.removeTag("waiting_for_evolution")
                 entity.removeTag("dragon_gate_challenger")
             }

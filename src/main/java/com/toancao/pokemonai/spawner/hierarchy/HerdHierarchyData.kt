@@ -12,12 +12,12 @@ data class HerdHierarchyData(
     var herdId: UUID? = null,
     var role: HerdRole = HerdRole.MEMBER,
     var leaderUUID: UUID? = null,
-    var partnerUUID: UUID? = null,           // Đối tác giao hữu (đấu sừng, tán tỉnh)
-    var formationIndex: Int = 0,             // Thứ tự vị trí trong đội hình (0: Leader, 1..N: Đàn em)
+    var partnerUUID: UUID? = null,
+    var formationIndex: Int = 0,
     var isNativeHerd: Boolean = false,
-    var isStampeding: Boolean = false,       // Đang trong trạng thái đại xung phong bầy đàn
-    var stampedeDelayTicks: Int = 0,         // Độ trễ xuất phát (để con đầu đàn chạy trước tiên phong)
-    var stampedeTicksRemaining: Int = 0,     // Thời gian xung phong còn lại
+    var isStampeding: Boolean = false,
+    var stampedeDelayTicks: Int = 0,
+    var stampedeTicksRemaining: Int = 0,
     var stampedeDirX: Double = 0.0,
     var stampedeDirZ: Double = 0.0
 ) {

@@ -20,7 +20,6 @@ public class FightOrFlightCompat {
             System.out.println("[PokemonAI] Fight or Flight mod detected! Integration enabled.");
         } catch (Exception e) {
             hasFightOrFlight = false;
-            // No mod installed or version mismatch
         }
     }
 
@@ -37,16 +36,9 @@ public class FightOrFlightCompat {
                     } else if (target instanceof net.minecraft.world.entity.Entity) {
                         return true;
                     }
-                    // Bỏ qua các kiểu trả về khác (ví dụ Boolean) để không bị lỗi return true liên tục
                 }
             }
-            // Tạm thời bỏ qua shouldFightTarget vì hàm này có thể chỉ dùng để check xem loài đó có tính hiếu chiến không (luôn true với thú dữ)
-            // if (shouldFightTargetMethod != null) {
-            //     Object shouldFight = shouldFightTargetMethod.invoke(null, pokemon);
-            //     if (shouldFight instanceof Boolean b && b) return true;
-            // }
         } catch (Throwable e) {
-            // Ignore reflection errors during runtime
         }
         return false;
     }

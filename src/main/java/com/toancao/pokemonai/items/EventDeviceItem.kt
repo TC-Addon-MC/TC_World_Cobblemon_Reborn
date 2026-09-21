@@ -14,7 +14,6 @@ class EventDeviceItem(properties: Properties) : Item(properties) {
         val itemStack = player.getItemInHand(usedHand)
         
         if (!level.isClientSide && player is ServerPlayer) {
-            // Khi người chơi mở, Server gửi thông tin sự kiện xuống Client
             EventNetwork.sendEventDataToClient(player)
         }
         

@@ -130,7 +130,6 @@ class EventNoticeScreen(initialEvents: List<NoticeEventManager.NoticeEvent>) : S
         if (mutableEvents.isNotEmpty() && selectedEventIndex in mutableEvents.indices) {
             val selectedEv = mutableEvents[selectedEventIndex]
             
-            // Render event image player
             guiGraphics.pose().pushPose()
             
             val playerWidth = 136
@@ -225,10 +224,10 @@ class EventNoticeScreen(initialEvents: List<NoticeEventManager.NoticeEvent>) : S
 
     private fun drawTimerBox(guiGraphics: GuiGraphics, font: net.minecraft.client.gui.Font, x: Int, y: Int, w: Int, h: Int, time: String, label: String) {
         guiGraphics.fill(x, y, x + w, y + h, 0xFF235C6E.toInt())
-        guiGraphics.fill(x, y, x + w, y + 1, 0xFF3DB7C9.toInt()) // top
-        guiGraphics.fill(x, y + h - 1, x + w, y + h, 0xFF3DB7C9.toInt()) // bottom
-        guiGraphics.fill(x, y, x + 1, y + h, 0xFF3DB7C9.toInt()) // left
-        guiGraphics.fill(x + w - 1, y, x + w, y + h, 0xFF3DB7C9.toInt()) // right
+        guiGraphics.fill(x, y, x + w, y + 1, 0xFF3DB7C9.toInt())
+        guiGraphics.fill(x, y + h - 1, x + w, y + h, 0xFF3DB7C9.toInt())
+        guiGraphics.fill(x, y, x + 1, y + h, 0xFF3DB7C9.toInt())
+        guiGraphics.fill(x + w - 1, y, x + w, y + h, 0xFF3DB7C9.toInt())
         
         guiGraphics.pose().pushPose()
         guiGraphics.pose().translate((x + w / 2 - font.width(time)).toDouble(), (y + 4).toDouble(), 0.0)

@@ -11,8 +11,8 @@ class JumpOutOfWaterGoal(
     private val entity: PokemonEntity,
     private val jumpChance: Float = RandomUtils.Probability.LOW.chance
 ) : Goal() {
-    private var cooldown = 100 + (entity as LivingEntity).level().random.nextInt(20) // ~5 seconds initial
-    private var state = 0 // 0: idle, 1: swimming to surface
+    private var cooldown = 100 + (entity as LivingEntity).level().random.nextInt(20)
+    private var state = 0
     private var timeoutTicks = 0
 
     init {
@@ -28,24 +28,20 @@ class JumpOutOfWaterGoal(
         val le = entity as LivingEntity
         val isInWater = le.isInWater
         
-        // Check mỗi 5s
         cooldown = 100 + le.level().random.nextInt(20)
 
         if (!isInWater) return false
         
-        // Tỉ lệ 20% nhẩy cho bất kì con cá nào
         if (le.level().random.nextFloat() >= 0.20f) return false
 
         if (!isInWater) return false
         
-        // Kiểm tra xem phía trên mặt nước có bị chặn (như băng, trần hang) không
         val level = le.level()
         var currentPos = le.blockPosition()
         var isBlocked = false
         while (currentPos.y < level.maxBuildHeight) {
             val state = level.getBlockState(currentPos)
             if (!state.fluidState.`is`(net.minecraft.tags.FluidTags.WATER)) {
-                // Thoát khỏi mặt nước, kiểm tra xem có phải không khí không (cần không gian để nhảy)
                 if (!state.isAir && !level.getBlockState(currentPos.above()).isAir) {
                     isBlocked = true
                 }
@@ -54,10 +50,8 @@ class JumpOutOfWaterGoal(
             currentPos = currentPos.above()
         }
         
-        if (isBlocked) return false // Nếu bị cản thì không thèm bơi lên làm gì
+        if (isBlocked) return false
 
-        // Bỏ qua RandomUtils.chance vì cooldown (30-40s) đã đóng vai trò làm giãn cách thời gian nhảy rồi.
-        // Khi hết cooldown, cá chắc chắn sẽ nhảy (nếu không bị cản).
         if (!com.toancao.pokemonai.utils.AIFilter.isEligible(entity)) return false
         val species = com.toancao.pokemonai.compat.CobblemonBridge.getSpeciesName(entity)
         return species == "magikarp"
@@ -73,9 +67,7 @@ class JumpOutOfWaterGoal(
         val le = entity as LivingEntity
         val level = le.level()
         
-        // Nếu cá đã vọt hẳn ra khỏi nước (không còn bị lực cản của nước)
         if (!le.isInWater) {
-            // Tính toán vận tốc nhảy
             val attack = le.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
             val sizeWeight = le.bbWidth * le.bbHeight
             val statFactor = attack / Math.max(sizeWeight.toDouble(), 0.1)
@@ -85,7 +77,6 @@ class JumpOutOfWaterGoal(
             
             val jumpPower = 0.7 + statBonus + randomBonus
             
-            // Lực búng lúc này hoàn toàn không bị nước cản lại!
             le.deltaMovement = net.minecraft.world.phys.Vec3(le.deltaMovement.x * 0.1, jumpPower, le.deltaMovement.z * 0.1)
             le.hasImpulse = true
             
@@ -98,7 +89,6 @@ class JumpOutOfWaterGoal(
             timeoutTicks = 0
             cooldown = 100 + level.random.nextInt(20)
         } else {
-            // Vẫn đang trong nước, tìm mặt nước để bơi lên
             var current = le.blockPosition()
             var surfaceBlockPos = current
             while (level.getFluidState(current).`is`(net.minecraft.tags.FluidTags.WATER) && current.y < level.maxBuildHeight) {
@@ -106,7 +96,6 @@ class JumpOutOfWaterGoal(
                 current = current.above()
             }
 
-            // Ép bơi lố qua mặt nước 1.5 block để chắc chắn toàn bộ thân cá thoát khỏi nước
             val mob = le as net.minecraft.world.entity.Mob
             mob.moveControl.setWantedPosition(
                 le.x,
@@ -116,7 +105,6 @@ class JumpOutOfWaterGoal(
             )
             
             timeoutTicks++
-            // Thời gian chờ dự phòng (failsafe)
             if (timeoutTicks > 600) { 
                 state = 2
                 timeoutTicks = 0
@@ -127,14 +115,12 @@ class JumpOutOfWaterGoal(
 
     override fun canContinueToUse(): Boolean {
         val le = entity as LivingEntity
-        if (state == 1) return true // Tiếp tục duy trì để tick() xử lý thời khắc thoát khỏi nước
+        if (state == 1) return true
 
         if (state == 2) {
             timeoutTicks++
-            // Đợi ít nhất 10 tick cho cá văng lên không trung. Sau đó nếu chạm nước hoặc chạm đất thì ngưng.
             if (timeoutTicks > 10 && le.isInWater) return false
             if (timeoutTicks > 10 && le.onGround()) return false
-            // Duy trì trạng thái bay lượn cho đến khi chạm nước hoặc đất
             return true
         }
         return false

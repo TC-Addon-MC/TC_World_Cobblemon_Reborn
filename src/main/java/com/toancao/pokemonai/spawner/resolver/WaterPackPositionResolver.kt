@@ -43,7 +43,6 @@ object WaterPackPositionResolver : PackPositionResolver {
             val targetZ = (center.z + dz).toInt()
             val targetY = center.y.toInt()
 
-            // Kiểm tra xem vị trí có nước không, nếu không tìm block nước gần đó
             var validY = center.y
             for (dy in -3..3) {
                 val checkPos = BlockPos(targetX, targetY + dy, targetZ)

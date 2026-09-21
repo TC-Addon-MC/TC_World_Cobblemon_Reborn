@@ -15,7 +15,6 @@ class DragonGateTopBlockItem(block: Block, properties: Properties) : BlockItem(b
         val player = context.player
         val state = level.getBlockState(pos)
 
-        // Can link FROM BottomBlock OR WaypointBlock
         if ((state.block is DragonGateBottomBlock || state.block is DragonGateWaypointBlock) && player?.isCrouching == true) {
             if (!level.isClientSide) {
                 val stack = context.itemInHand

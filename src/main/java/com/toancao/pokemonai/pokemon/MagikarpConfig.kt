@@ -15,7 +15,6 @@ object MagikarpConfig {
         BehaviorRegistry.Entry(5, { entity -> DragonGateChallengeGoal(entity) })
     )
 
-    // A data class for profile config if needed, here just defined locally
     data class EmotionProfile(val baseRage: Int, val baseDetermination: Int, val baseFear: Int)
     
     val emotionProfile: EmotionProfile

@@ -31,6 +31,10 @@ object DebugCommands {
         registerFlyCancelCommand(root)
         registerSpawnAirCommand(root)
         registerPackCommand(root)
+        registerFlightDiagCommand(root)
+        registerFlyNativeCommand(root)
+        registerNativeToggleCommand(root)
+        registerTestFlyCommand(root)
 
         dispatcher.register(root)
     }
@@ -169,6 +173,203 @@ object DebugCommands {
         )
     }
 
+    /**
+     * Phase 8: quan sát runtime flight. Chỉ dùng khi debug, không ảnh hưởng gameplay.
+     * /tcpoke flightdiag — in số machine/session.
+     * /tcpoke flightdiag watersurface <species> — in mặt nước thật tại Pokémon.
+     * /tcpoke flightdiag landingsite <species> — in điểm đáp được chọn.
+     */
+    private fun registerFlightDiagCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("flightdiag")
+                .executes { context ->
+                    val machines = com.toancao.pokemonai.flight.CustomFlightManager.machineCount()
+                    val sessions = com.toancao.pokemonai.flight.engine.FlightEngine.sessionCount()
+                    context.source.sendSuccess(
+                        { Component.literal("Flight machines=$machines sessions=$sessions") },
+                        false
+                    )
+                    machines
+                }
+                .then(
+                    Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .then(
+                            Commands.literal("watersurface").executes { context ->
+                                val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
+                                val pokemon = findNearestPokemonOfSpecies(context.source.level, context.source.entity, species, 128.0)
+                                    ?: run {
+                                        context.source.sendFailure(Component.literal("Không tìm thấy $species"))
+                                        return@executes 0
+                                    }
+                                val mob = pokemon as net.minecraft.world.entity.Mob
+                                val surface = com.toancao.pokemonai.flight.FlightHelpers.findWaterSurfaceY(mob)
+                                context.source.sendSuccess(
+                                    { Component.literal("WaterSurface($species) = ${surface?.let { String.format("%.2f", it) } ?: "null"} at y=${String.format("%.2f", mob.y)}") },
+                                    false
+                                )
+                                1
+                            }
+                        )
+                        .then(
+                            Commands.literal("landingsite").executes { context ->
+                                val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
+                                val pokemon = findNearestPokemonOfSpecies(context.source.level, context.source.entity, species, 128.0)
+                                    ?: run {
+                                        context.source.sendFailure(Component.literal("Không tìm thấy $species"))
+                                        return@executes 0
+                                    }
+                                val site = try {
+                                    com.toancao.pokemonai.flight.navigation.LandingSiteFinder.findLandingSite(pokemon)
+                                } catch (e: Exception) {
+                                    null
+                                }
+                                context.source.sendSuccess(
+                                    { Component.literal("LandingSite($species) = ${site?.let { String.format("(%.1f, %.1f, %.1f)", it.x, it.y, it.z) } ?: "null"}") },
+                                    false
+                                )
+                                1
+                            }
+                        )
+                )
+        )
+    }
+
+    /**
+     * `/tcpoke testfly [species]` — dựng sân bay thử nghiệm trước mặt người chơi
+     * (sân cất cánh, tường 5x5, tán lá, hồ nông, mái đáp, hồ sâu kính + thả chim test).
+     * `/tcpoke testfly clear` — khôi phục block + dọn chim test.
+     */
+    private fun registerTestFlyCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("testfly")
+                .executes { context -> executeTestFly(context, "pidgeot") }
+                .then(
+                    Commands.literal("clear").executes { context ->
+                        val level = context.source.level
+                        val restored = TestFlyRig.clear(level)
+                        context.source.sendSuccess(
+                            { Component.literal("Đã dọn sân testfly ($restored block khôi phục, chim test đã xóa)") },
+                            true
+                        )
+                        restored
+                    }
+                )
+                .then(
+                    Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .suggests { _, builder ->
+                            com.toancao.pokemonai.flight.CustomFlightRegistry.getAllSpeciesNames()
+                                .forEach { builder.suggest(it) }
+                            builder.buildFuture()
+                        }
+                        .executes { context ->
+                            val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
+                            executeTestFly(context, species)
+                        }
+                )
+        )
+    }
+
+    private fun executeTestFly(
+        context: com.mojang.brigadier.context.CommandContext<CommandSourceStack>,
+        species: String
+    ): Int {
+        val player = context.source.player
+        if (player == null) {
+            context.source.sendFailure(Component.literal("Lệnh này chỉ dùng được cho người chơi!"))
+            return 0
+        }
+        return try {
+            val report = TestFlyRig.build(player.serverLevel(), player, species)
+            if (report.birdSpawned == null) {
+                context.source.sendSuccess(
+                    { Component.literal("Đã dựng sân testfly tại [${report.center.x}, ${report.center.y}, ${report.center.z}] (${report.blocksPlaced} block) nhưng KHÔNG thả được chim '$species' (sai tên hoặc loài chưa có flight preset)") },
+                    true
+                )
+                return 1
+            }
+            context.source.sendSuccess(
+                {
+                    Component.literal(
+                        "Đã dựng sân testfly tại [${report.center.x}, ${report.center.y}, ${report.center.z}] " +
+                            "(${report.blocksPlaced} block) + thả ${report.birdSpawned}. " +
+                            "Dùng /tcpoke debug on để xem state, /tcpoke nativenav ${report.birdSpawned} on để test native, /tcpoke testfly clear để dọn."
+                    )
+                },
+                true
+            )
+            1
+        } catch (e: IllegalStateException) {
+            context.source.sendFailure(Component.literal("Dựng sân thất bại: ${e.message}"))
+            0
+        } catch (_: Exception) {
+            context.source.sendFailure(Component.literal("Dựng sân thất bại do lỗi không xác định"))
+            0
+        }
+    }
+    private fun registerNativeToggleCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("nativenav")
+                .then(
+                    Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .then(
+                            Commands.argument("state", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                .suggests { _, builder ->
+                                    builder.suggest("on")
+                                    builder.suggest("off")
+                                    builder.buildFuture()
+                                }
+                                .executes { context ->
+                                    val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
+                                    val state = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "state")
+                                    val enabled = state.equals("on", ignoreCase = true)
+                                    if (!enabled && !state.equals("off", ignoreCase = true)) {
+                                        context.source.sendFailure(Component.literal("Dùng on hoặc off"))
+                                        return@executes 0
+                                    }
+                                    val count = com.toancao.pokemonai.flight.CustomFlightManager.setNativeForSpecies(species, enabled)
+                                    context.source.sendSuccess(
+                                        { Component.literal("Native navigation $species -> ${if (enabled) "ON" else "OFF"} ($count machine)") },
+                                        true
+                                    )
+                                    count
+                                }
+                        )
+                )
+        )
+    }
+    private fun registerFlyNativeCommand(root: com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack>) {
+        root.then(
+            Commands.literal("flynative")
+                .then(
+                    Commands.argument("species", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .then(
+                            Commands.argument("pos", net.minecraft.commands.arguments.coordinates.Vec3Argument.vec3())
+                                .executes { context ->
+                                    val species = com.mojang.brigadier.arguments.StringArgumentType.getString(context, "species")
+                                    val pos = net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(context, "pos")
+                                    val pokemon = findNearestPokemonOfSpecies(context.source.level, context.source.entity, species, 128.0)
+                                        ?: run {
+                                            context.source.sendFailure(Component.translatable("command.tc_reborn.fly.not_found", species))
+                                            return@executes 0
+                                        }
+                                    com.toancao.pokemonai.flight.engine.FlightEngine.stopFlight(pokemon)
+                                    val ok = com.toancao.pokemonai.flight.navigation.NativeFlightMovement.moveTo(pokemon, pos, speed = 1.0)
+                                    if (ok) {
+                                        context.source.sendSuccess(
+                                            { Component.literal("Native fly $species -> (${String.format("%.1f", pos.x)}, ${String.format("%.1f", pos.y)}, ${String.format("%.1f", pos.z)})") },
+                                            true
+                                        )
+                                        1
+                                    } else {
+                                        context.source.sendFailure(Component.literal("Native fly thất bại (loài không biết bay hoặc navigation từ chối)"))
+                                        0
+                                    }
+                                }
+                        )
+                )
+        )
+    }
+
     private fun executeSpawnAir(context: com.mojang.brigadier.context.CommandContext<CommandSourceStack>): Int {
         val player = context.source.player
         if (player == null) {
@@ -263,7 +464,6 @@ object DebugCommands {
                 source.sendSuccess({ Component.translatable("command.tc_reborn.fly.takeoff", species, alt) }, true)
             }
             "land" -> {
-                // Sử dụng hàm land thông minh thay vì stopFlight đột ngột
                 engine.land(pokemon)
                 source.sendSuccess({ Component.translatable("command.tc_reborn.fly.force_land", species) }, true)
             }
@@ -335,7 +535,7 @@ object DebugCommands {
         for (entity in targets) {
             if (checkY && executor != null) {
                 if (Math.abs(entity.y - executor.y) > 2.0) {
-                    continue // Skip if not on same Y level
+                    continue
                 }
             }
             if (entity is com.cobblemon.mod.common.entity.pokemon.PokemonEntity) {
@@ -611,7 +811,6 @@ object DebugCommands {
         val firstTauros = taurosList.first()
         val herdId = firstTauros.getHerdData().herdId
         if (herdId != null) {
-            // Phát động Đại Xung Phong (Stampede) KHÓA HƯỚNG nhìn của người chơi cho toàn bầy
             val lookDir = player.lookAngle
             com.toancao.pokemonai.behaviors.combat.HerdSharedAggroGoal.triggerHerdStampedeDirection(
                 level, herdId, firstTauros.position(), lookDir, box

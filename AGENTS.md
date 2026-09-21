@@ -82,3 +82,10 @@ File này áp dụng cho toàn bộ repository. Mọi AI agent phải đọc và
 - Resource JSON, lang, codec/NBT và client/server boundary được kiểm tra khi có thay đổi.
 - Diff cuối chỉ gồm các file cần thiết; dữ liệu và thay đổi sẵn có của người dùng được bảo toàn.
 - Báo ngắn gọn file đã đổi, hành vi đã thêm/sửa, lệnh xác minh và warning còn lại.
+
+## 8. Phong cách viết của tôi
+
+- Không dùng comment `//` trong code mới. Code phải tự giải thích qua tên biến/hàm;
+  chỉ giữ KDoc/JavaDoc khi API public thật sự cần. Quy định này thay thế dòng
+  comment ở mục 5.
+

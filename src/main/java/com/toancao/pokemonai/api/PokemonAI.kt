@@ -37,9 +37,6 @@ object PokemonAI {
         return FlightEngine.hasActiveFlight(pokemon)
     }
 
-    // ==========================================
-    // Flight Stamina & Mechanics
-    // ==========================================
 
     @JvmStatic
     fun getRemainingStamina(pokemon: PokemonEntity): Float {
@@ -59,7 +56,7 @@ object PokemonAI {
     fun forceCircularFlight(pokemon: PokemonEntity, centerPos: Vec3) {
         val machine = com.toancao.pokemonai.flight.CustomFlightManager.getMachine(pokemon.uuid)
         if (machine != null) {
-            machine.profile.currentStamina = machine.profile.config.maxFlightTicks.toDouble() // Fill stamina
+            machine.profile.currentStamina = machine.profile.config.maxFlightTicks.toDouble()
             machine.profile.circularFlightCenter = centerPos
             machine.transitionTo(com.toancao.pokemonai.flight.FlightState.CIRCULAR_FLYING)
         }
@@ -73,9 +70,6 @@ object PokemonAI {
         }
     }
 
-    // ==========================================
-    // Dragon Gate Events
-    // ==========================================
 
     @JvmStatic
     fun startDragonGateEvent(level: net.minecraft.server.level.ServerLevel) {
@@ -96,9 +90,6 @@ object PokemonAI {
         return com.toancao.pokemonai.events.DragonGateEvent.currentPhase != com.toancao.pokemonai.events.DragonGateEvent.EventPhase.IDLE
     }
 
-    // ==========================================
-    // Air Spawner
-    // ==========================================
 
     @JvmStatic
     fun spawnCloudPokemon(player: net.minecraft.server.level.ServerPlayer, targetSpecies: String) {
@@ -107,9 +98,6 @@ object PokemonAI {
         com.toancao.pokemonai.flight.spawner.CustomAirSpawner.spawnExactPokemon(level, pos, targetSpecies)
     }
 
-    // ==========================================
-    // AI Filter
-    // ==========================================
 
     @JvmStatic
     fun isEligibleForCustomAI(pokemon: PokemonEntity): Boolean {

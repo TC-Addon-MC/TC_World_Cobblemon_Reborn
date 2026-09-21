@@ -32,7 +32,7 @@ class BullRushChargeGoal(private val entity: PokemonEntity) : Goal() {
         if (!currentTarget.isAlive) return false
 
         val distSq = entity.distanceToSqr(currentTarget)
-        return distSq in 16.0..256.0 // Khoảng cách từ 4 đến 16 block
+        return distSq in 16.0..256.0
     }
 
     override fun start() {
@@ -53,12 +53,12 @@ class BullRushChargeGoal(private val entity: PokemonEntity) : Goal() {
                 if (ticks % 5 == 0) {
                     level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, entity.x, entity.y, entity.z, 5, 0.3, 0.1, 0.3, 0.05)
                 }
-                if (ticks >= 25) { // 1.25 giây lấy đà
+                if (ticks >= 25) {
                     state = ChargeState.CHARGING
                     ticks = 0
                     entity.isSprinting = true
                     val look = curTarget.position().subtract(entity.position()).normalize()
-                    chargeVec = Vec3(look.x * 0.85, 0.0, look.z * 0.85) // Tốc độ húc cao
+                    chargeVec = Vec3(look.x * 0.85, 0.0, look.z * 0.85)
                     level.playSound(null, entity.blockPosition(), SoundEvents.RAVAGER_ATTACK, SoundSource.NEUTRAL, 1.2f, 0.8f)
                 }
             }
@@ -66,11 +66,9 @@ class BullRushChargeGoal(private val entity: PokemonEntity) : Goal() {
                 entity.isSprinting = true
                 entity.deltaMovement = chargeVec
 
-                // 1. Phá khối cản đường phía trước
                 val frontPos = BlockPos.containing(entity.x + chargeVec.x * 1.5, entity.y + 0.5, entity.z + chargeVec.z * 1.5)
                 BlockBreakHandler.tryBreakBlocksInBox(level, frontPos.offset(-1, 0, -1), frontPos.offset(1, 1, 1))
 
-                // 2. Va chạm gây sát thương mục tiêu
                 if (entity.distanceToSqr(curTarget) < 4.0) {
                     val attackPower = (entity.pokemon.attack / 5.0f).coerceAtLeast(6.0f)
                     curTarget.hurt(entity.damageSources().mobAttack(entity), attackPower)
@@ -82,7 +80,7 @@ class BullRushChargeGoal(private val entity: PokemonEntity) : Goal() {
                     ticks = 0
                 }
 
-                if (ticks >= 35) { // Quá thời gian húc tối đa
+                if (ticks >= 35) {
                     entity.isSprinting = false
                     state = ChargeState.COOLDOWN
                     ticks = 0

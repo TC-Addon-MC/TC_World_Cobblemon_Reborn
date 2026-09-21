@@ -19,7 +19,6 @@ object BlockBreakHandler {
      * Phá hủy các khối cản hợp lệ trong phạm vi hộp và trả về số lượng khối đã phá
      */
     fun tryBreakBlocksInBox(level: ServerLevel, minPos: BlockPos, maxPos: BlockPos): Int {
-        // Tôn trọng luật mobGriefing của thế giới
         if (!level.gameRules.getBoolean(GameRules.RULE_MOBGRIEFING)) return 0
 
         var brokenCount = 0
@@ -30,7 +29,6 @@ object BlockBreakHandler {
                     val state = level.getBlockState(pos)
 
                     if (state.`is`(BREAKABLE_TAG)) {
-                        // Phá trực tiếp không rớt item thừa để bảo vệ TPS server
                         level.destroyBlock(pos, false)
                         brokenCount++
                     }

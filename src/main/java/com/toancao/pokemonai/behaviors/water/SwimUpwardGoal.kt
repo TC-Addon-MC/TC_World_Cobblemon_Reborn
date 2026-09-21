@@ -17,7 +17,6 @@ class SwimUpwardGoal(
 
     override fun canUse(): Boolean {
         if (!(entity as LivingEntity).isInWater) return false
-        // Chỉ ép bơi lên mặt nước khi tham gia sự kiện cổng rồng
         if (!entity.tags.contains("dragon_gate_challenger")) return false
         val species = com.toancao.pokemonai.compat.CobblemonBridge.getSpeciesName(entity)
         if (species != "magikarp") return false
@@ -32,7 +31,6 @@ class SwimUpwardGoal(
 
     override fun tick() {
         val pos = targetPos ?: return
-        // Access navigation via Mob cast (PathfinderMob extends Mob which has navigation)
         val mob = entity as Mob
         mob.navigation.moveTo(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble(), 1.0)
     }

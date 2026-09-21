@@ -21,7 +21,6 @@ object FixNbt {
             
             var modified = false
 
-            // Fix palette
             if (nbt.contains("palette", 9)) {
                 val palette = nbt.getList("palette", 10)
                 for (i in 0 until palette.size) {
@@ -34,7 +33,6 @@ object FixNbt {
                 }
             }
             
-            // If there are multiple palettes (e.g. "palettes")
             if (nbt.contains("palettes", 9)) {
                 val palettes = nbt.getList("palettes", 9)
                 for (i in 0 until palettes.size) {
@@ -50,7 +48,6 @@ object FixNbt {
                 }
             }
             
-            // Fix block entities
             if (nbt.contains("blocks", 9)) {
                 val blocks = nbt.getList("blocks", 10)
                 for (i in 0 until blocks.size) {

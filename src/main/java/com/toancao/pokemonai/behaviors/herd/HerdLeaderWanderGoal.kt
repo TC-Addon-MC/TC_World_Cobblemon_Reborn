@@ -22,7 +22,6 @@ class HerdLeaderWanderGoal(private val entity: PokemonEntity) : Goal() {
         if (!data.isInHerd || !data.isLeader) return false
         if (entity.isBattling) return false
 
-        // Không đi lang thang khi đang chiến đấu hoặc đàn đang đại xung phong
         if (entity.target != null && entity.target!!.isAlive) return false
         if (data.isStampeding) return false
 
@@ -31,7 +30,6 @@ class HerdLeaderWanderGoal(private val entity: PokemonEntity) : Goal() {
             return false
         }
 
-        // Mở rộng bán kính tìm bãi cỏ mới lên 32 - 40 block
         val randomPos = LandRandomPos.getPos(entity, 32, 10) ?: LandRandomPos.getPos(entity, 20, 7) ?: return false
         targetPos = randomPos
         return true
@@ -52,7 +50,6 @@ class HerdLeaderWanderGoal(private val entity: PokemonEntity) : Goal() {
 
     override fun stop() {
         targetPos = null
-        // Khi đến nơi, nghỉ từ 15 đến 30 giây để toàn bộ đàn có thời gian tản ra gặm cỏ thoải mái
         restCooldownTicks = entity.random.nextInt(300, 600)
     }
 }

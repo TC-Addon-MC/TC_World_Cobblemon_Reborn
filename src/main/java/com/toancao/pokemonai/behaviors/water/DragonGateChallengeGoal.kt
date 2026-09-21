@@ -73,14 +73,10 @@ class DragonGateChallengeGoal(private val pokemonEntity: PokemonEntity) : Goal()
         
         val distSqrToTarget = entity.distanceToSqr(target.x.toDouble() + 0.5, target.y.toDouble() + 0.5, target.z.toDouble() + 0.5)
         
-        // Nếu đã được nhận thẻ chờ tiến hóa ở đỉnh tháp
         if (entity.tags.contains("waiting_for_evolution")) {
             if (distSqrToTarget <= 100.0) {
-                // Đang trong R=10, thả rông hoàn toàn (không chạy tiếp lệnh ép bơi bên dưới)
                 return
             }
-            // Nếu trôi ra > 10, để cho code trôi xuống dưới. Hệ thống bơi lội (deltaMovement) 
-            // của chính Goal này sẽ kích hoạt và bắp nó bơi hì hục về lại đích y như lúc vượt thác!
         }
 
         if (restTicks > 0) {
@@ -109,7 +105,6 @@ class DragonGateChallengeGoal(private val pokemonEntity: PokemonEntity) : Goal()
             if (be is com.toancao.pokemonai.blocks.entity.DragonGateWaypointBlockEntity) {
                 val nextPos = be.nextPos
                 if (nextPos != null) {
-                    // Update tags
                     val tagsToRemove = entity.tags.filter { it.startsWith("target_") }
                     tagsToRemove.forEach { entity.removeTag(it) }
                     
@@ -131,8 +126,7 @@ class DragonGateChallengeGoal(private val pokemonEntity: PokemonEntity) : Goal()
             if (arrivedTicks >= ARRIVE_WAIT) {
                 if (level.getBlockState(target).block is com.toancao.pokemonai.blocks.DragonGateTopBlock) {
                     val distSqr = entity.distanceToSqr(target.x.toDouble() + 0.5, target.y.toDouble() + 0.5, target.z.toDouble() + 0.5)
-                    if (distSqr <= 100.0) { // R=10
-                        // Đánh dấu đã đến đỉnh và roll 50% cơ hội tiến hóa
+                    if (distSqr <= 100.0) {
                         if (!entity.tags.contains("waiting_for_evolution")) {
                             com.toancao.pokemonai.compat.CobblemonBridge.addTag(pokemonEntity, "waiting_for_evolution")
                             if (level.random.nextFloat() < 0.90f) {
@@ -140,7 +134,6 @@ class DragonGateChallengeGoal(private val pokemonEntity: PokemonEntity) : Goal()
                             }
                         }
                     } else {
-                        // Slowly move closer
                         entity.deltaMovement = Vec3(Math.cos(challengeTicks * 0.1) * 0.05, 0.0, Math.sin(challengeTicks * 0.1) * 0.05)
                     }
                 }

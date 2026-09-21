@@ -12,7 +12,6 @@ import net.minecraft.world.entity.player.Player
 object EmotionEventHandler {
     fun register() {
         ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register { world, killer, killed ->
-            // placeholder
         }
     }
 

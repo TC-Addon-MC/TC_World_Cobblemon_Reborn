@@ -21,7 +21,6 @@ class CustomFlightProfile(
     var flightCount: Int = 0
     var verticalVelocity: Double = 0.0
     
-    // Takeoff Physics
     var velocityX: Double = 0.0
     var velocityY: Double = 0.0
     var velocityZ: Double = 0.0
@@ -33,7 +32,6 @@ class CustomFlightProfile(
     var staminaRecoveryMaxRate: Double = 0.10
     var debugTextDisplay: net.minecraft.world.entity.Display.TextDisplay? = null
     
-    // Lưu tọa độ tâm khi thực hiện bay lượn vòng tròn
     var circularFlightCenter: net.minecraft.world.phys.Vec3? = null
     var circularFlightAngle: Double = 0.0
 

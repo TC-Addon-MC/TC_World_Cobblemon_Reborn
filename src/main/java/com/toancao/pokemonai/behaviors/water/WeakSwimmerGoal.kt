@@ -26,10 +26,8 @@ class WeakSwimmerGoal(private val entity: PokemonEntity) : Goal() {
         val fluidState = level.getFluidState(pos)
 
         if (fluidState.`is`(FluidTags.WATER) && !fluidState.isSource) {
-            // Lấy hướng dòng chảy
             val flow = fluidState.getFlow(level, pos)
             if (flow.lengthSqr() > 0) {
-                // Áp dụng thêm lực đẩy xuôi theo dòng chảy vì Magikarp bơi yếu
                 val currentMovement = livingEntity.deltaMovement
                 livingEntity.deltaMovement = currentMovement.add(flow.x * 0.05, flow.y * 0.05, flow.z * 0.05)
             }

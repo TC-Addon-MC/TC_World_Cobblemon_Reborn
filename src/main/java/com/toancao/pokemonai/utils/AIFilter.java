@@ -14,29 +14,22 @@ public class AIFilter {
         Pokemon pkmn = pokemonEntity.getPokemon();
         if (pkmn == null) return false;
 
-        // 1. Phải là hoang dã (wild) — không thuộc về bất kỳ trainer nào
         if (pkmn.getOwnerUUID() != null) return false;
 
-        // 2. Không đang trong battle
         if (pokemonEntity.getBattleId() != null) return false;
         
-        // 3. Không đang bận rộn với các hành động khác
         if (pokemonEntity.isSleeping()) return false;
         if (pokemonEntity.isBusy()) return false;
         if (pokemonEntity.isVehicle()) return false;
 
-        // 4. Không đang đánh nhau (đã target)
         if (pokemonEntity.getTarget() != null) return false;
 
-        // 5. Tích hợp Fight or Flight (nếu có cài mod)
         if (com.toancao.pokemonai.compat.FightOrFlightCompat.isEngaged(pokemonEntity)) {
             return false;
         }
 
-        // 6. Entity phải tồn tại trong world hợp lệ
         if (pokemonEntity.level() == null) return false;
 
-        // 7. Mod khác có muốn chặn AI không?
         if (!com.toancao.pokemonai.api.PokemonAIEvents.ON_AI_FILTER_CHECK.invoker().onAIFilterCheck(pokemonEntity)) {
             return false;
         }

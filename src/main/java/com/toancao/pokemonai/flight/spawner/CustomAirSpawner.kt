@@ -132,9 +132,18 @@ object CustomAirSpawner {
         entity.yRot = spawnYaw
         entity.yBodyRot = spawnYaw
         entity.yHeadRot = spawnYaw
+        val feet = net.minecraft.world.phys.Vec3(airPos.x + 0.5, airPos.y + 1.5, airPos.z + 0.5)
+        val movedBox = entity.boundingBox.move(feet.x - entity.x, feet.y - entity.y, feet.z - entity.z)
+        if (!level.noCollision(entity, movedBox) || !level.getFluidState(BlockPos.containing(feet)).isEmpty) {
+            entity.discard()
+            return false
+        }
         entity.isNoGravity = true
         level.setBlockAndUpdate(airPos, BlockRegistry.CLOUD_BLOCK.defaultBlockState())
         startAirFlight(entity, flightConfig)
+        if (CustomFlightManager.getMachine(entity.uuid) == null) {
+            entity.isNoGravity = false
+        }
         return true
     }
 
@@ -150,9 +159,18 @@ object CustomAirSpawner {
             .sendOut(level, airPos.center, null) {}
             ?: return false
         entity.setPos(airPos.x + 0.5, airPos.y + 1.5, airPos.z + 0.5)
+        val feet = net.minecraft.world.phys.Vec3(airPos.x + 0.5, airPos.y + 1.5, airPos.z + 0.5)
+        val movedBox = entity.boundingBox.move(feet.x - entity.x, feet.y - entity.y, feet.z - entity.z)
+        if (!level.noCollision(entity, movedBox) || !level.getFluidState(BlockPos.containing(feet)).isEmpty) {
+            entity.discard()
+            return false
+        }
         entity.isNoGravity = true
         level.setBlockAndUpdate(airPos, BlockRegistry.CLOUD_BLOCK.defaultBlockState())
         startAirFlight(entity, flightConfig)
+        if (CustomFlightManager.getMachine(entity.uuid) == null) {
+            entity.isNoGravity = false
+        }
         return true
     }
 
@@ -183,8 +201,21 @@ object CustomAirSpawner {
         return ItemStack.EMPTY
     }
 
+    /**
+     * Đợt 3: kiểm tra cả khối 3x3x3 quanh điểm spawn thay vì 2 block,
+     * tránh spawn loài lớn kẹt nửa thân trong tường/cây.
+     */
     private fun isSafeAirPosition(level: ServerLevel, pos: BlockPos): Boolean {
-        return level.getBlockState(pos).isAir && level.getBlockState(pos.above()).isAir
+        for (dx in -1..1) {
+            for (dy in 0..2) {
+                for (dz in -1..1) {
+                    val p = pos.offset(dx, dy, dz)
+                    if (!level.getBlockState(p).isAir) return false
+                    if (!level.getFluidState(p).isEmpty) return false
+                }
+            }
+        }
+        return true
     }
 
     private fun countPokemonInChunk(level: ServerLevel, chunkX: Int, chunkZ: Int): Int {

@@ -39,7 +39,6 @@ object MagikarpConfigManager {
                 if (!JsonParser.parseString(json).asJsonObject.has("forceEvolutionIgnoresRequirements")) {
                     config.forceEvolutionIgnoresRequirements = true
                 }
-                // Save again to ensure new fields are written
                 saveConfig()
             } catch (e: Exception) {
                 e.printStackTrace()

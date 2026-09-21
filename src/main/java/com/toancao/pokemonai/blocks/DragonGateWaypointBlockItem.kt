@@ -20,7 +20,6 @@ class DragonGateWaypointBlockItem(block: Block, properties: Properties) : BlockI
         val player = context.player
         val state = level.getBlockState(pos)
 
-        // Can link FROM BottomBlock OR another WaypointBlock
         if ((state.block is DragonGateBottomBlock || state.block is DragonGateWaypointBlock) && player?.isCrouching == true) {
             if (!level.isClientSide) {
                 val stack = context.itemInHand
@@ -42,7 +41,6 @@ class DragonGateWaypointBlockItem(block: Block, properties: Properties) : BlockI
     }
 
     override fun updateCustomBlockEntityTag(pos: BlockPos, level: Level, player: net.minecraft.world.entity.player.Player?, stack: ItemStack, state: BlockState): Boolean {
-        // When this waypoint block is PLACED, link it back to the previous block
         val data = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA)
         val tag = data?.copyTag()
         if (tag != null && tag.contains("LinkedX")) {

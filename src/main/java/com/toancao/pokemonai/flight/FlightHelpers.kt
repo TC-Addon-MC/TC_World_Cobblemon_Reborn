@@ -15,7 +15,6 @@ object FlightHelpers {
         val groundY = estimateGroundY(mob)
         val currentHeight = mob.y - groundY
         val diff = profile.currentPreferredHeight - currentHeight
-        // Trả về lực đẩy y tỷ lệ với độ lệch độ cao
         return diff * 0.05
     }
 
@@ -23,8 +22,6 @@ object FlightHelpers {
         val vel = mob.deltaMovement
         if (vel.x * vel.x + vel.z * vel.z > 0.001) {
             val yaw = (Math.toDegrees(atan2(vel.z, vel.x)) - 90.0).toFloat()
-            // Xoay đầu mượt nhưng đủ nhanh (tăng từ 10f lên 25f) để bắt kịp vận tốc,
-            // tránh hiện tượng bay ngang/lùi khi đổi hướng gắt (ví dụ lúc bay vòng).
             mob.yRot = rotlerp(mob.yRot, yaw, 25f)
             mob.yBodyRot = mob.yRot
             mob.yHeadRot = mob.yRot
@@ -40,12 +37,59 @@ object FlightHelpers {
 
     fun estimateGroundY(mob: net.minecraft.world.entity.Mob): Double {
         val level = mob.level() ?: return mob.y
-        return level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, mob.x.toInt(), mob.z.toInt()).toDouble()
+        return try {
+            level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, mob.x.toInt(), mob.z.toInt()).toDouble()
+        } catch (_: Exception) {
+            level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, mob.x.toInt(), mob.z.toInt()).toDouble()
+        }
     }
 
+    /**
+     * Phase 1: resolve mặt nước thật bằng fluid scan, không dùng OCEAN_FLOOR (đáy biển).
+     * Trả null khi không có cột nước liên tục quanh entity.
+     */
+    fun findWaterSurfaceY(level: net.minecraft.world.level.Level, x: Int, startY: Int, z: Int): Double? {
+        val maxY = level.maxBuildHeight
+        val minY = level.minBuildHeight
+        var baseY = startY.coerceIn(minY, maxY)
+
+        var waterY: Int? = null
+        if (level.getFluidState(net.minecraft.core.BlockPos(x, baseY, z)).`is`(net.minecraft.tags.FluidTags.WATER)) {
+            waterY = baseY
+        } else {
+            for (dy in -2..2) {
+                val y = baseY + dy
+                if (y < minY || y > maxY) continue
+                if (level.getFluidState(net.minecraft.core.BlockPos(x, y, z)).`is`(net.minecraft.tags.FluidTags.WATER)) {
+                    waterY = y
+                    break
+                }
+            }
+        }
+        if (waterY == null) return null
+
+        var topY = waterY
+        while (topY + 1 <= maxY) {
+            val next = net.minecraft.core.BlockPos(x, topY + 1, z)
+            if (level.getFluidState(next).`is`(net.minecraft.tags.FluidTags.WATER)) {
+                topY++
+            } else break
+        }
+        val topPos = net.minecraft.core.BlockPos(x, topY, z)
+        val fluid = level.getFluidState(topPos)
+        if (!fluid.`is`(net.minecraft.tags.FluidTags.WATER)) return null
+        return topPos.y + fluid.getHeight(level, topPos).toDouble()
+    }
+
+    fun findWaterSurfaceY(mob: net.minecraft.world.entity.Mob): Double? {
+        val level = mob.level() ?: return null
+        val startY = kotlin.math.floor(mob.boundingBox.minY).toInt()
+        return findWaterSurfaceY(level, mob.blockX, startY, mob.blockZ)
+    }
+
+    @Deprecated("Dùng findWaterSurfaceY để tránh OCEAN_FLOOR trả về đáy biển", ReplaceWith("findWaterSurfaceY(mob) ?: mob.y"))
     fun estimateWaterSurfaceY(mob: net.minecraft.world.entity.Mob): Double {
-        val level = mob.level() ?: return mob.y
-        return level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.OCEAN_FLOOR, mob.x.toInt(), mob.z.toInt()).toDouble() // Có thể không chuẩn bằng raycast nhưng an toàn hơn
+        return findWaterSurfaceY(mob) ?: mob.y
     }
 
 
@@ -54,10 +98,8 @@ object FlightHelpers {
     }
 
     fun restoreAI(mob: net.minecraft.world.entity.Mob) {
-        // AI sẽ tự động điều khiển lại bình thường khi trạng thái bay kết thúc
     }
 
-    // ── Shared Logic (Deduplication) ──────────────────────────────────────────
 
     enum class WaterStatus { NONE, SURFACE, SUBMERGED }
 
@@ -77,10 +119,18 @@ object FlightHelpers {
     fun terminateFlight(pokemon: com.cobblemon.mod.common.entity.pokemon.PokemonEntity) {
         val mob = pokemon as net.minecraft.world.entity.Mob
         mob.isNoGravity = false
+        try {
+            mob.navigation?.stop()
+        } catch (_: Exception) {
+        }
         restoreAI(mob)
         com.toancao.pokemonai.compat.CobblemonBridge.setFlyingFlag(pokemon, false)
     }
 
+    /**
+     * Đợt 3: né vật cản 3 tầng (chân + thân + đầu), có kiểm tra trần.
+     * Thay cú vọt `climbAmount * 10` bằng lực nâng vừa phải, tránh vọt độ cao đột ngột.
+     */
     fun checkObstacleAhead(
         mob: net.minecraft.world.entity.Mob,
         rawVec: Vec3,
@@ -88,21 +138,35 @@ object FlightHelpers {
         climbAmount: Double
     ): Vec3 {
         val level = mob.level() ?: return rawVec
+        val len = rawVec.length()
+        if (len < 1e-6) return rawVec
         val norm = rawVec.normalize()
-        var blockAhead = false
+        val baseY = mob.y.toInt()
+        var blockedLevel = -1
 
-        for (i in 1..checkRange) {
-            val checkX = mob.x + norm.x * i
-            val checkZ = mob.z + norm.z * i
-            val checkPos = net.minecraft.core.BlockPos(checkX.toInt(), mob.y.toInt(), checkZ.toInt())
-            if (!level.getBlockState(checkPos).getCollisionShape(level, checkPos).isEmpty) {
-                blockAhead = true
-                break
+        outer@ for (i in 1..checkRange.coerceIn(1, 8)) {
+            val checkX = (mob.x + norm.x * i).toInt()
+            val checkZ = (mob.z + norm.z * i).toInt()
+            for (dy in 0..2) {
+                val pos = net.minecraft.core.BlockPos(checkX, baseY + dy, checkZ)
+                if (!level.getBlockState(pos).getCollisionShape(level, pos).isEmpty) {
+                    blockedLevel = dy
+                    break@outer
+                }
             }
         }
+        if (blockedLevel < 0) return rawVec
 
-        return if (blockAhead) Vec3(rawVec.x, rawVec.y + climbAmount * 10.0, rawVec.z)
-        else rawVec
+        val headroomBlocked = (1..2).any { dy ->
+            val pos = net.minecraft.core.BlockPos(mob.blockX, baseY + 3 + dy, mob.blockZ)
+            !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty
+        }
+        if (headroomBlocked) {
+            return Vec3(rawVec.x * 0.3, rawVec.y.coerceAtMost(0.0), rawVec.z * 0.3)
+        }
+
+        val lift = climbAmount.coerceIn(0.0, 3.0) * (1.0 - blockedLevel * 0.25).coerceAtLeast(0.25)
+        return Vec3(rawVec.x, rawVec.y + lift, rawVec.z)
     }
 
     fun spawnTakeoffParticles(level: net.minecraft.world.level.Level, pokemon: net.minecraft.world.entity.Entity, progress: Double, style: Int = 0) {
@@ -111,40 +175,34 @@ object FlightHelpers {
     val random = pokemon.random
     val baseRadius = pokemon.bbWidth.toDouble() * 1.5
 
-    // Giảm số lượng xuống mức cực thấp (chỉ 2 đến 4 hạt mỗi nhịp) để tránh bị đặc quánh
     val actualCount = if (style == 2) 2 else (2 + progress * 2).toInt()
 
-    // Chuyển toàn bộ sang các hạt kích thước nhỏ, tơi xốp, dạng bụi mịn (dust)
     val (primaryParticle, secondaryParticle) = when (style) {
-        0 -> Pair(net.minecraft.core.particles.ParticleTypes.WHITE_ASH, net.minecraft.core.particles.ParticleTypes.SNOWFLAKE) // Bụi trắng li ti + sương nổi
-        1 -> Pair(net.minecraft.core.particles.ParticleTypes.ASH, net.minecraft.core.particles.ParticleTypes.WHITE_ASH)       // Bụi tro đen/trắng cuốn theo gió
-        2 -> Pair(net.minecraft.core.particles.ParticleTypes.GLOW, net.minecraft.core.particles.ParticleTypes.END_ROD)        // Bụi lốm đốm phát sáng
-        else -> Pair(net.minecraft.core.particles.ParticleTypes.ASH, net.minecraft.core.particles.ParticleTypes.SMOKE) // Bụi đất mờ sát mặt đất
+        0 -> Pair(net.minecraft.core.particles.ParticleTypes.WHITE_ASH, net.minecraft.core.particles.ParticleTypes.SNOWFLAKE)
+        1 -> Pair(net.minecraft.core.particles.ParticleTypes.ASH, net.minecraft.core.particles.ParticleTypes.WHITE_ASH)
+        2 -> Pair(net.minecraft.core.particles.ParticleTypes.GLOW, net.minecraft.core.particles.ParticleTypes.END_ROD)
+        else -> Pair(net.minecraft.core.particles.ParticleTypes.ASH, net.minecraft.core.particles.ParticleTypes.SMOKE)
     }
 
     for (i in 0 until actualCount) {
         val angle = random.nextDouble() * kotlin.math.PI * 2.0
         
-        // Vòng tỏa hẹp hơn để bụi ôm sát khu vực cất cánh
         val radius = baseRadius + (progress * 1.0) + (random.nextDouble() * 0.2) 
 
         val px = pokemon.x + kotlin.math.cos(angle) * radius
         val pz = pokemon.z + kotlin.math.sin(angle) * radius
         
-        // Giảm tốc độ văng ngang, gần như không có lực đẩy dọc (vy) để bụi bay là là mặt đất
         val speed = 0.04 + random.nextDouble() * 0.04
         val vx = kotlin.math.cos(angle) * speed
         val vz = kotlin.math.sin(angle) * speed
-        val vy = random.nextDouble() * 0.015 // Rất thấp
+        val vy = random.nextDouble() * 0.015
 
-        // Bụi văng xa
         level.sendParticles(
             primaryParticle,
             px, pokemon.y + 0.05, pz,
             0, vx, vy, vz, 1.0
         )
 
-        // Bụi lơ lửng tại chỗ (chỉ xuất hiện 33% số lần để tạo độ thưa thớt)
         if (random.nextInt(3) == 0) {
             level.sendParticles(
                 secondaryParticle,
@@ -162,7 +220,7 @@ object FlightHelpers {
             pokemon.x, pokemon.y, pokemon.z,
             net.minecraft.sounds.SoundEvents.WIND_CHARGE_BURST,
             net.minecraft.sounds.SoundSource.AMBIENT,
-            0.3f, // Tiếng gió thật nhỏ
+            0.3f,
             1.0f + (random.nextFloat() * 0.2f)
         )
     }
